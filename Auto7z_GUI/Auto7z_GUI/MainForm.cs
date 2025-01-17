@@ -597,20 +597,28 @@ namespace Auto7z_GUI
 
         private void UPDATE_CONFIG(string filePath, string key, string newValue)
         {
-            XDocument xdoc = XDocument.Load(filePath); // 加载 XML 文件
-
-            var element = xdoc.Descendants(key).FirstOrDefault(); // 查找指定节点
-            if (element != null)
+            try
             {
-                element.Value = newValue; // 修改节点值
-            }
-            else
-            {
-                // 创建新节点并设置值
-                xdoc.Root.Add(new XElement(key, newValue));
+                XDocument xdoc = XDocument.Load(filePath); // 加载 XML 文件
+
+                var element = xdoc.Descendants(key).FirstOrDefault(); // 查找指定节点
+                if (element != null)
+                {
+                    element.Value = newValue; // 修改节点值
+                }
+                else
+                {
+                    // 创建新节点并设置值
+                    xdoc.Root.Add(new XElement(key, newValue));
+                }
+
+                xdoc.Save(filePath); // 保存文件
             }
 
-            xdoc.Save(filePath); // 保存文件
+            catch (Exception)
+            {
+                CREATE_DEFAULT_CONFIG(xmlPath);
+            }
         }
 
         private string GET_CURRENT_LANGUAGE(string configFilePath)
