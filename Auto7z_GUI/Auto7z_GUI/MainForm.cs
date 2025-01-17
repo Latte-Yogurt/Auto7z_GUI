@@ -31,6 +31,17 @@ namespace Auto7z_GUI
         public long folderSize;
         public string sevenZPath;
         public string sevenZDllPath;
+        public string langPath;
+        public string sevenZXADllPath;
+        public string defaultSFXPath;
+        public string default64SFXPath;
+        public string rarPath;
+        public string rarRegKeyPath;
+        public string winConSFXPath;
+        public string winCon64SFXPath;
+        public string winRarPath;
+        public string zipSFXPath;
+        public string zip64SFXPath;
         public string newFolderPath;
 
         public MainForm(string[] args)
@@ -110,11 +121,44 @@ namespace Auto7z_GUI
                 directoryPath = Path.GetDirectoryName(filePath);
             }
 
-            string sevenZ = @"7z.exe";
+            string sevenZ = @"7z\\7z.exe";
             sevenZPath = Path.Combine(workPath, sevenZ);
 
-            string sevenZDll = @"7z.dll";
+            string sevenZDll = @"7z\\7z.dll";
             sevenZDllPath = Path.Combine(workPath, sevenZDll);
+
+            string Lang = @"7z\\Lang";
+            langPath = Path.Combine(workPath, Lang);
+
+            string sevenZXADll = @"rar\\7zxa.dll";
+            sevenZXADllPath = Path.Combine(workPath, sevenZXADll);
+
+            string defaultSFX = @"rar\\Default.SFX";
+            defaultSFXPath = Path.Combine(workPath, defaultSFX);
+
+            string default64SFX = @"rar\\Default64.SFX";
+            default64SFXPath = Path.Combine(workPath, default64SFX);
+
+            string rar = @"rar\\Rar.exe";
+            rarPath = Path.Combine(workPath, rar);
+
+            string rarRegKey = @"rar\\rarreg.key";
+            rarRegKeyPath = Path.Combine(workPath, rarRegKey);
+
+            string winConSFX = @"rar\\WinCon.SFX";
+            winConSFXPath = Path.Combine(workPath, winConSFX);
+
+            string winCon64SFX = @"rar\\WinCon64.SFX";
+            winCon64SFXPath = Path.Combine(workPath, winCon64SFX);
+
+            string winRar = @"rar\\WinRAR.exe";
+            winRarPath = Path.Combine(workPath, winRar);
+
+            string zipSFX = @"rar\\Zip.SFX";
+            zipSFXPath = Path.Combine(workPath, zipSFX);
+
+            string zip64SFX = @"rar\\Zip64.SFX";
+            zip64SFXPath = Path.Combine(workPath, zip64SFX);
 
             partSize = GET_PARTSIZE(xmlPath);
             format = GET_FORMAT(xmlPath);
@@ -128,30 +172,151 @@ namespace Auto7z_GUI
 
             if (filePath != null)
             {
-                if (!CHECK_SEVENZ_EXIST())
+                if (format == "7z" || format == "zip")
                 {
-                    switch (currentLanguage)
+                    if (!CHECK_SEVENZ_EXIST())
                     {
-                        case "zh-CN":
-                            MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll Lang)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                        case "zh-TW":
-                            MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll Lang)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                        case "en-US":
-                            MessageBox.Show("The 7z components (7z.exe 7z.dll Lang) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
+                        switch (currentLanguage)
+                        {
+                            case "zh-CN":
+                                MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "zh-TW":
+                                MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "en-US":
+                                MessageBox.Show("The 7z components (7z.exe 7z.dll) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                        }
+
+                        this.Close();
+                        return;
                     }
 
-                    this.Close();
-                    return;
+                    else if (!CHECK_LANG_EXIST())
+                    {
+                        switch (currentLanguage)
+                        {
+                            case "zh-CN":
+                                MessageBox.Show("程序工作路径下7z组件(Lang)不完整，可能导致7z本地化翻译出现问题。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                            case "zh-TW":
+                                MessageBox.Show("程式工作路徑下7z組件(Lang)不完整，可能導致7z本地化翻譯出現問題。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                            case "en-US":
+                                MessageBox.Show("The 7z component (Lang) in the program working path is incomplete, which may result in issues with 7z localization translation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                        }
+
+                        string command = GENERATE_COMMAND();
+
+                        if (command != null)
+                        {
+                            EXECUTE_COMMAND(command);
+                            this.Close();
+                        }
+
+                        else
+                        {
+                            switch (currentLanguage)
+                            {
+                                case "zh-CN":
+                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "zh-TW":
+                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "en-US":
+                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                            }
+
+                            this.Close();
+                            return;
+                        }
+                    }
+
+                    else
+                    {
+                        string command = GENERATE_COMMAND();
+
+                        if (command != null)
+                        {
+                            EXECUTE_COMMAND(command);
+                            this.Close();
+                        }
+
+                        else
+                        {
+                            switch (currentLanguage)
+                            {
+                                case "zh-CN":
+                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "zh-TW":
+                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "en-US":
+                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                            }
+
+                            this.Close();
+                            return;
+                        }
+                    }
                 }
 
-                else
+                if (format == "rar")
                 {
-                    string command = GENERATE_COMMAND();
-                    EXECUTE_COMMAND(command);
-                    this.Close();
+                    if (!CHECK_RAR_EXIST())
+                    {
+                        switch (currentLanguage)
+                        {
+                            case "zh-CN":
+                                MessageBox.Show("程序工作路径下rar组件(7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX)不完整，无法启动rar处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "zh-TW":
+                                MessageBox.Show("程式工作路徑下rar組件(7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX)不完整，無法啓動rar處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "en-US":
+                                MessageBox.Show("The rar components (7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX) in the program's working directory are incomplete and can not start the rar processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                        }
+
+                        this.Close();
+                        return;
+                    }
+
+                    else
+                    {
+                        string command = GENERATE_COMMAND();
+
+                        if (command != null)
+                        {
+                            EXECUTE_COMMAND(command);
+                            this.Close();
+                        }
+
+                        else
+                        {
+                            switch (currentLanguage)
+                            {
+                                case "zh-CN":
+                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "zh-TW":
+                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "en-US":
+                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                            }
+
+                            this.Close();
+                            return;
+                        }
+                    }
                 }
             }
         }
@@ -228,74 +393,54 @@ namespace Auto7z_GUI
         {
             CREATE_NEW_FOLDER();
 
-            if (File.Exists(filePath))
+            if (!File.Exists(filePath) && !Directory.Exists(filePath))
             {
-                int targetSize = int.Parse(partSize);
-
-                if (fileSize <= targetSize || targetSize == 0)
-                {
-                    if (password == null)
-                    {
-                        string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
-                        return command;
-                    }
-
-                    else
-                    {
-                        string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\" -p{password}";
-                        return command;
-                    }
-                }
-
-                else if (fileSize > targetSize)
-                {
-                    if (password == null)
-                    {
-                        string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\" -v{partSize}m";
-                        return command;
-                    }
-
-                    else
-                    {
-                        string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\" -v{partSize}m -p{password}";
-                        return command;
-                    }
-                }
+                return null; // 如果文件或目录不存在，返回 null
             }
 
-            else if(Directory.Exists(filePath))
+            int targetSize = int.Parse(partSize);
+            bool isFile = File.Exists(filePath);
+            long size = isFile ? fileSize : folderSize; // 确定使用文件大小还是文件夹大小
+
+            if (format == "7z" || format == "zip")
             {
-                int targetSize = int.Parse(partSize);
+                string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
 
-                if (folderSize <= targetSize || targetSize == 0)
+                // 添加分卷选项
+                if (size > targetSize)
                 {
-                    if (password == null)
-                    {
-                        string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
-                        return command;
-                    }
-
-                    else
-                    {
-                        string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\" -p{password}";
-                        return command;
-                    }
+                    command += $" -v{partSize}m";
                 }
 
-                else if (folderSize > targetSize)
+                // 添加密码选项
+                if (!string.IsNullOrEmpty(password))
                 {
-                    if (password == null)
-                    {
-                        string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\" -v{partSize}m";
-                        return command;
-                    }
-
-                    else
-                    {
-                        string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\" -v{partSize}m -p{password}";
-                        return command;
-                    }
+                    command += $" -p{password}";
                 }
+
+                return command;
+            }
+
+            if (format == "rar")
+            {
+                string command;
+
+                if (size <= targetSize)
+                {
+                    command = $"@\"{winRarPath}\" a -ep1 \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
+                }
+
+                else
+                {
+                    command = $"@\"{winRarPath}\" a -v{partSize}m -ep1 \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
+                }
+
+                if (!string.IsNullOrEmpty(password))
+                {
+                    command += $" -p{password}";
+                }
+
+                return command;
             }
 
             return null;
@@ -387,6 +532,18 @@ namespace Auto7z_GUI
             return File.Exists(sevenZPath) && File.Exists(sevenZDllPath);
         }
 
+        private bool CHECK_LANG_EXIST()
+        {
+            return Directory.Exists(langPath);
+        }
+
+        private bool CHECK_RAR_EXIST()
+        {
+            return File.Exists(sevenZXADllPath) && File.Exists(defaultSFXPath) && File.Exists(default64SFXPath) 
+                && File.Exists(rarPath) && File.Exists(rarRegKeyPath) && File.Exists(winConSFXPath) 
+                && File.Exists(winCon64SFXPath) && File.Exists(winRarPath) && File.Exists(zipSFXPath) && File.Exists(zip64SFXPath);
+        }
+
         private void CREATE_DEFAULT_CONFIG(string configFilePath)
         {
             int newLocationX = Screen.PrimaryScreen.Bounds.Width / 2 - this.Width / 2;
@@ -471,13 +628,11 @@ namespace Auto7z_GUI
             // 检查 Language 节点是否存在
             var languageNode = xdoc.Descendants("Language").FirstOrDefault();
 
-            if (languageNode == null)
-            {
-                // 获取当前系统的显示语言
-                var currentCulture = CultureInfo.CurrentUICulture;
+            // 获取当前系统的显示语言
+            var currentCulture = CultureInfo.CurrentUICulture;
 
-                // 创建一个示例词典，包含支持的语言
-                var supportedLanguages = new HashSet<string>
+            // 创建一个示例词典，包含支持的语言
+            var supportedLanguages = new HashSet<string>
                 {
                     "zh-CN", // 中文 (简体)
                     "zh-TW", // 中文 (繁体)
@@ -485,6 +640,8 @@ namespace Auto7z_GUI
                     // 其他语言...
                 };
 
+            if (languageNode == null)
+            {
                 // 检查当前语言是否在词典中
                 if (supportedLanguages.Contains(currentCulture.Name))
                 {
@@ -518,18 +675,6 @@ namespace Auto7z_GUI
             // 如果获取到的值为空字符串
             if (string.IsNullOrEmpty(language))
             {
-                // 获取当前系统的显示语言
-                var currentCulture = CultureInfo.CurrentUICulture;
-
-                // 创建一个示例词典，包含支持的语言
-                var supportedLanguages = new HashSet<string>
-                {
-                    "zh-CN", // 中文 (简体)
-                    "zh-TW", // 中文 (繁体)
-                    "en-US", // 英语 (美国)
-                    // 其他语言...
-                };
-
                 // 检查当前语言是否在词典中
                 if (supportedLanguages.Contains(currentCulture.Name))
                 {
@@ -542,11 +687,25 @@ namespace Auto7z_GUI
                 }
             }
 
+            // 检查语言是否在支持语言词典中
+            if (!supportedLanguages.Contains(language))
+            {
+                // 如果不在，返回当前的系统显示语言（如果在支持列表中）
+                if (supportedLanguages.Contains(currentCulture.Name))
+                {
+                    return currentCulture.Name;
+                }
+                else
+                {
+                    return "en-US"; // 默认语言
+                }
+            }
+
             // 返回获取到的值
             return language;
         }
 
-        private string GET_LOCATION_X(string configFilePath)
+        private int GET_LOCATION_X(string configFilePath)
         {
             if (!File.Exists(configFilePath))
             {
@@ -557,9 +716,10 @@ namespace Auto7z_GUI
 
             var locationXNode = xdoc.Descendants("LocationX").FirstOrDefault();
 
+            int newLocationX = Screen.PrimaryScreen.Bounds.Width / 2 - this.Size.Width / 2;
+
             if (locationXNode == null)
             {
-                int newLocationX = Screen.PrimaryScreen.Bounds.Width / 2 - this.Size.Width / 2;
 
                 XElement newNode = new XElement("LocationX", newLocationX);
 
@@ -567,22 +727,31 @@ namespace Auto7z_GUI
 
                 xdoc.Save(configFilePath);
 
-                return newLocationX.ToString();
+                return newLocationX;
             }
 
             var locationX = locationXNode.Value;
+            int locationXToInt;
 
             if (string.IsNullOrEmpty(locationX))
             {
-                int newLocationX = Screen.PrimaryScreen.Bounds.Width / 2 - this.Size.Width / 2;
-
-                return newLocationX.ToString();
+                return newLocationX;
             }
 
-            return locationX;
+            if (!int.TryParse(locationX,out locationXToInt))
+            {
+                return newLocationX;
+            }
+
+            if (locationXToInt > Screen.PrimaryScreen.Bounds.Width - this.Size.Width || locationXToInt < -10)
+            {
+                return newLocationX;
+            }
+
+            return locationXToInt;
         }
 
-        private string GET_LOCATION_Y(string configFilePath)
+        private int GET_LOCATION_Y(string configFilePath)
         {
             if (!File.Exists(configFilePath))
             {
@@ -593,29 +762,38 @@ namespace Auto7z_GUI
 
             var locationYNode = xdoc.Descendants("LocationY").FirstOrDefault();
 
+            int newLocationY = Screen.PrimaryScreen.Bounds.Height / 2 - this.Size.Height / 2;
+
             if (locationYNode == null)
             {
-                int newLocationY = Screen.PrimaryScreen.Bounds.Height / 2 - this.Size.Height / 2;
-
                 XElement newNode = new XElement("LocationY", newLocationY);
 
                 xdoc.Root.Add(newNode);
 
                 xdoc.Save(configFilePath);
 
-                return newLocationY.ToString();
+                return newLocationY;
             }
 
             var locationY = locationYNode.Value;
+            int locationYToInt;
 
             if (string.IsNullOrEmpty(locationY))
             {
-                int newLocationY = Screen.PrimaryScreen.Bounds.Height / 2 - this.Size.Height / 2;
-
-                return newLocationY.ToString();
+                return newLocationY;
             }
 
-            return locationY;
+            if (!int.TryParse(locationY, out locationYToInt))
+            {
+                return newLocationY;
+            }
+
+            if (locationYToInt > Screen.PrimaryScreen.Bounds.Height - this.Size.Height || locationYToInt < 0)
+            {
+                return newLocationY;
+            }
+
+            return locationYToInt;
         }
 
         private string GET_PARTSIZE(string configFilePath)
@@ -641,13 +819,19 @@ namespace Auto7z_GUI
             }
 
             var partSize = partSizeNode.Value;
+            int partSizeToInt;
 
             if (string.IsNullOrEmpty(partSize))
             {
                 return "2000";
             }
 
-            return partSize;
+            if (!int.TryParse(partSize, out partSizeToInt))
+            {
+                return "2000";
+            }
+
+            return partSizeToInt.ToString();
         }
 
         private string GET_FORMAT(string configFilePath)
@@ -660,6 +844,14 @@ namespace Auto7z_GUI
             XDocument xdoc = XDocument.Load(configFilePath);
 
             var formatNode = xdoc.Descendants("Format").FirstOrDefault();
+
+            var supportedFormat = new HashSet<string>
+            {
+                "7z",
+                "zip",
+                "rar"
+            };
+
 
             if (formatNode == null)
             {
@@ -675,6 +867,11 @@ namespace Auto7z_GUI
             var format = formatNode.Value;
 
             if (string.IsNullOrEmpty(format))
+            {
+                return "7z";
+            }
+
+            if (!supportedFormat.Contains(format))
             {
                 return "7z";
             }
@@ -748,14 +945,14 @@ namespace Auto7z_GUI
 
         private void DEFAULT_PARTSIZE_TEXTBOX()
         {
-            int sizeNumber= int.Parse(partSize);
-            TextBoxSize.Text = sizeNumber.ToString();
+            TextBoxSize.Text = partSize;
         }
 
         private void DEFAULT_FORMAT_MENU()
         {
             ComboBoxFormat.Items.Add("7z");
             ComboBoxFormat.Items.Add("zip");
+            ComboBoxFormat.Items.Add("rar");
 
             if (format == "7z")
             {
@@ -765,6 +962,11 @@ namespace Auto7z_GUI
             if (format == "zip")
             {
                 ComboBoxFormat.SelectedIndex = 1;
+            }
+
+            if (format == "rar")
+            {
+                ComboBoxFormat.SelectedIndex = 2;
             }
         }
 
@@ -810,7 +1012,7 @@ namespace Auto7z_GUI
                     MessageBox.Show("Configuration Saved.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
             }
-
+            
             SAVE_CONFIG();
             SAVE_LOCATION();
         }
@@ -884,8 +1086,8 @@ namespace Auto7z_GUI
 
         private void MAINFORM_LOAD(object sender, EventArgs e)
         {
-            locationX = int.Parse(GET_LOCATION_X(xmlPath));
-            locationY = int.Parse(GET_LOCATION_Y(xmlPath));
+            locationX = GET_LOCATION_X(xmlPath);
+            locationY = GET_LOCATION_Y(xmlPath);
 
             this.Location = new Point(locationX, locationY);
         }
@@ -994,26 +1196,131 @@ namespace Auto7z_GUI
                 fileName = Path.GetFileNameWithoutExtension(filePath);
                 directoryPath = Path.GetDirectoryName(filePath);
 
-                if (!CHECK_SEVENZ_EXIST())
+                if (format == "7z" || format == "zip")
                 {
-                    switch (currentLanguage)
+                    if (!CHECK_SEVENZ_EXIST())
                     {
-                        case "zh-CN":
-                            MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll Lang)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                        case "zh-TW":
-                            MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll Lang)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                        case "en-US":
-                            MessageBox.Show("The 7z components (7z.exe 7z.dll Lang) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
+                        switch (currentLanguage)
+                        {
+                            case "zh-CN":
+                                MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll Lang)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "zh-TW":
+                                MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll Lang)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "en-US":
+                                MessageBox.Show("The 7z components (7z.exe 7z.dll Lang) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                        }
+                    }
+
+                    else if (!CHECK_LANG_EXIST())
+                    {
+                        switch (currentLanguage)
+                        {
+                            case "zh-CN":
+                                MessageBox.Show("程序工作路径下7z组件(Lang)不完整，可能导致7z本地化翻译出现问题。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                            case "zh-TW":
+                                MessageBox.Show("程式工作路徑下7z組件(Lang)不完整，可能導致7z本地化翻譯出現問題。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                            case "en-US":
+                                MessageBox.Show("The 7z component (Lang) in the program working path is incomplete, which may result in issues with 7z localization translation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                        }
+
+                        string command = GENERATE_COMMAND();
+                        if (command != null)
+                        {
+                            await Task.Run(() => EXECUTE_COMMAND(command));
+                        }
+
+                        else
+                        {
+                            switch (currentLanguage)
+                            {
+                                case "zh-CN":
+                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "zh-TW":
+                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "en-US":
+                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                            }
+                        }
+                    }
+
+                    else
+                    {
+                        string command = GENERATE_COMMAND();
+                        if (command != null)
+                        {
+                            await Task.Run(() => EXECUTE_COMMAND(command));
+                        }
+
+                        else
+                        {
+                            switch (currentLanguage)
+                            {
+                                case "zh-CN":
+                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "zh-TW":
+                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "en-US":
+                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                            }
+                        }
                     }
                 }
 
-                else
+                if (format == "rar")
                 {
-                    string command = GENERATE_COMMAND();
-                    await Task.Run(() => EXECUTE_COMMAND(command));
+                    if (!CHECK_RAR_EXIST())
+                    {
+                        switch (currentLanguage)
+                        {
+                            case "zh-CN":
+                                MessageBox.Show("程序工作路径下rar组件(7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX)不完整，无法启动rar处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "zh-TW":
+                                MessageBox.Show("程式工作路徑下rar組件(7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX)不完整，無法啓動rar處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "en-US":
+                                MessageBox.Show("The rar components (7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX) in the program's working directory are incomplete and can not start the rar processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                        }
+                    }
+
+                    else
+                    {
+                        string command = GENERATE_COMMAND();
+
+                        if (command != null)
+                        {
+                            await Task.Run(() => EXECUTE_COMMAND(command));
+                        }
+
+                        else
+                        {
+                            switch (currentLanguage)
+                            {
+                                case "zh-CN":
+                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "zh-TW":
+                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "en-US":
+                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                            }
+                        }
+                    }
                 }
             }
 
