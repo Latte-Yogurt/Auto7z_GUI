@@ -407,7 +407,7 @@ namespace Auto7z_GUI
                 string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
 
                 // 添加分卷选项
-                if (size > targetSize)
+                if (size > targetSize && targetSize > 0)
                 {
                     command += $" -v{partSize}m";
                 }
@@ -423,16 +423,11 @@ namespace Auto7z_GUI
 
             if (format == "rar")
             {
-                string command;
+                string command = $"@\"{winRarPath}\" a -ep1 \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
 
-                if (size <= targetSize)
+                if (size > targetSize && targetSize > 0)
                 {
-                    command = $"@\"{winRarPath}\" a -ep1 \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
-                }
-
-                else
-                {
-                    command = $"@\"{winRarPath}\" a -v{partSize}m -ep1 \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
+                    command += $" -v{partSize}m";
                 }
 
                 if (!string.IsNullOrEmpty(password))
@@ -837,6 +832,11 @@ namespace Auto7z_GUI
             if (!int.TryParse(partSize, out partSizeToInt))
             {
                 return "2000";
+            }
+
+            if (partSizeToInt < 0)
+            {
+                return "0";
             }
 
             return partSizeToInt.ToString();
