@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace AddList
@@ -15,12 +16,10 @@ namespace AddList
         public static string currentLanguage;
         public string xmlPath;
         public string auto7zPath;
+        public string exePath;
 
         public MainForm()
         {
-            InitializeComponent();
-            this.Hide(); // 隐藏窗口
-
             string workPath = GET_WORK_PATH(); // 获取程序路径
             string xml = @"Auto7z\\config.xml";
             xmlPath = Path.Combine(workPath, xml);
@@ -28,12 +27,12 @@ namespace AddList
             string auto7z = @"Auto7z";
             auto7zPath = Path.Combine(workPath, auto7z);
 
-            if (Directory.Exists(auto7zPath))
+            string exe = @"Auto7z\\Auto7z_GUI.exe";
+            exePath = Path.Combine(workPath, exe);
+
+            if (Directory.Exists(auto7zPath) && File.Exists(exePath))
             {
                 currentLanguage = GET_CURRENT_LANGUAGE(xmlPath);
-
-                string exe = @"Auto7z\\Auto7z_GUI.exe";
-                string exePath = Path.Combine(workPath, exe);
 
                 try
                 {
@@ -136,6 +135,32 @@ namespace AddList
 
         private void CREATE_DEFAULT_CONFIG(string configFilePath)
         {
+            if (File.Exists(configFilePath))
+            {
+                try
+                {
+                    File.Delete(configFilePath);
+                }
+
+                catch (Exception ex)
+                {
+                    switch (currentLanguage)
+                    {
+                        case "zh-CN":
+                            MessageBox.Show($"出现错误: {ex.Message}。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            break;
+                        case "zh-TW":
+                            MessageBox.Show($"出現錯誤: {ex.Message}。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            break;
+                        case "en-US":
+                            MessageBox.Show($"An error occurred: {ex.Message}.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            break;
+                    }
+
+                    this.Close();
+                }
+            }
+
             // 获取当前系统的显示语言
             var currentCulture = CultureInfo.CurrentUICulture;
 
@@ -179,19 +204,11 @@ namespace AddList
                 CREATE_DEFAULT_CONFIG(configFilePath);
             }
 
-            // 加载 XML 文档
-            XDocument xdoc = XDocument.Load(configFilePath);
+            // 获取当前系统的显示语言
+            var currentCulture = CultureInfo.CurrentUICulture;
 
-            // 检查 Language 节点是否存在
-            var languageNode = xdoc.Descendants("Language").FirstOrDefault();
-
-            if (languageNode == null)
-            {
-                // 获取当前系统的显示语言
-                var currentCulture = CultureInfo.CurrentUICulture;
-
-                // 创建一个示例词典，包含支持的语言
-                var supportedLanguages = new HashSet<string>
+            // 创建一个示例词典，包含支持的语言
+            var supportedLanguages = new HashSet<string>
                 {
                     "zh-CN", // 中文 (简体)
                     "zh-TW", // 中文 (繁体)
@@ -199,6 +216,35 @@ namespace AddList
                     // 其他语言...
                 };
 
+            XDocument xdoc;
+
+            try
+            {
+                // 加载 XML 文档
+                xdoc = XDocument.Load(configFilePath);
+            }
+
+            catch (XmlException)
+            {
+                // 如果加载失败，创建新的默认配置文件并返回默认值
+                CREATE_DEFAULT_CONFIG(configFilePath);
+
+                if (supportedLanguages.Contains(currentCulture.Name))
+                {
+                    return currentCulture.Name;
+                }
+
+                else
+                {
+                    return "en-US";
+                }
+            }
+
+            // 检查 Language 节点是否存在
+            var languageNode = xdoc.Descendants("Language").FirstOrDefault();
+
+            if (languageNode == null)
+            {
                 // 检查当前语言是否在词典中
                 if (supportedLanguages.Contains(currentCulture.Name))
                 {
@@ -232,18 +278,6 @@ namespace AddList
             // 如果获取到的值为空字符串
             if (string.IsNullOrEmpty(language))
             {
-                // 获取当前系统的显示语言
-                var currentCulture = CultureInfo.CurrentUICulture;
-
-                // 创建一个示例词典，包含支持的语言
-                var supportedLanguages = new HashSet<string>
-                {
-                    "zh-CN", // 中文 (简体)
-                    "zh-TW", // 中文 (繁体)
-                    "en-US", // 英语 (美国)
-                    // 其他语言...
-                };
-
                 // 检查当前语言是否在词典中
                 if (supportedLanguages.Contains(currentCulture.Name))
                 {
@@ -253,6 +287,20 @@ namespace AddList
                 else
                 {
                     return "en-US";
+                }
+            }
+
+            // 检查语言是否在支持语言词典中
+            if (!supportedLanguages.Contains(language))
+            {
+                // 如果在，返回当前的系统显示语言（如果在支持列表中）
+                if (supportedLanguages.Contains(currentCulture.Name))
+                {
+                    return currentCulture.Name;
+                }
+                else
+                {
+                    return "en-US"; // 默认语言
                 }
             }
 
