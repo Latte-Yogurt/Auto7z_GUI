@@ -583,8 +583,24 @@ namespace Auto7z_GUI
                 // 其他语言...
             };
 
+            if (currentLanguage != null && supportedLanguages.Contains(currentCulture.Name))
+            {
+                // 创建默认的 XML 结构
+                XElement defaultConfig = new XElement("Configuration",
+                    new XElement("Language", $"{currentLanguage}"),
+                    new XElement("LocationX", $"{newLocationX}"),
+                    new XElement("LocationY", $"{newLocationY}"),
+                    new XElement("PartSize", "2000"),
+                    new XElement("Format", "7z"),
+                    new XElement("Password", ""),
+                    new XElement("AutoSave", "true")
+                );
+
+                defaultConfig.Save(configFilePath);
+            }
+
             // 检查当前语言是否在词典中
-            if (supportedLanguages.Contains(currentCulture.Name))
+            if (currentLanguage == null && supportedLanguages.Contains(currentCulture.Name))
             {
                 // 创建默认的 XML 结构
                 XElement defaultConfig = new XElement("Configuration",
@@ -600,7 +616,7 @@ namespace Auto7z_GUI
                 defaultConfig.Save(configFilePath);
             }
 
-            else
+            if (!supportedLanguages.Contains(currentCulture.Name))
             {
                 // 创建默认的 XML 结构
                 XElement defaultConfig = new XElement("Configuration",
