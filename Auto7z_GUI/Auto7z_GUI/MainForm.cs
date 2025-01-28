@@ -315,9 +315,9 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             bool tarFinished = EXECUTE_COMMAND_BOOL(command);
-                            if (zstd=="true")
+                            if (zstd == "true")
                             {
-                                while(tarFinished)
+                                while (tarFinished)
                                 {
                                     string zstdCommand = ZSTD_COMMAND();
 
@@ -377,7 +377,7 @@ namespace Auto7z_GUI
 
                                     while (zstdFinished)
                                     {
-                                        if(File.Exists($"{newFolderPath}\\{fileName}.tar"))
+                                        if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
                                         {
                                             File.Delete($"{newFolderPath}\\{fileName}.tar");
                                         }
@@ -588,7 +588,7 @@ namespace Auto7z_GUI
                 return null; // 如果文件或目录不存在，返回 null
             }
 
-            if(!createSuccess)
+            if (!createSuccess)
             {
                 return null;
             }
@@ -636,6 +636,11 @@ namespace Auto7z_GUI
             if (format == "tar")
             {
                 string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
+
+                if (size > targetSize && targetSize > 0 && zstd == "false")
+                {
+                    command += $" -v{partSize}m";
+                }
 
                 return command;
             }
@@ -767,8 +772,8 @@ namespace Auto7z_GUI
 
         private bool CHECK_RAR_EXIST()
         {
-            return File.Exists(sevenZXADllPath) && File.Exists(defaultSFXPath) && File.Exists(default64SFXPath) 
-                && File.Exists(rarPath) && File.Exists(rarRegKeyPath) && File.Exists(winConSFXPath) 
+            return File.Exists(sevenZXADllPath) && File.Exists(defaultSFXPath) && File.Exists(default64SFXPath)
+                && File.Exists(rarPath) && File.Exists(rarRegKeyPath) && File.Exists(winConSFXPath)
                 && File.Exists(winCon64SFXPath) && File.Exists(winRarPath) && File.Exists(zipSFXPath) && File.Exists(zip64SFXPath);
         }
 
@@ -827,7 +832,7 @@ namespace Auto7z_GUI
                     new XElement("Password", ""),
                     new XElement("ForbiddenTarSplit", "false"),
                     new XElement("AutoSave", "true"),
-                    new XElement("Zstd","true")
+                    new XElement("Zstd", "true")
                 );
 
                 defaultConfig.Save(configFilePath);
@@ -844,7 +849,7 @@ namespace Auto7z_GUI
                     new XElement("PartSize", "2048"),
                     new XElement("Format", "7z"),
                     new XElement("Password", ""),
-                    new XElement("ForbiddenTarSplit","false"),
+                    new XElement("ForbiddenTarSplit", "false"),
                     new XElement("AutoSave", "true"),
                     new XElement("Zstd", "true")
                 );
@@ -1057,7 +1062,7 @@ namespace Auto7z_GUI
                 return newLocationX;
             }
 
-            if (!int.TryParse(locationX,out locationXToInt))
+            if (!int.TryParse(locationX, out locationXToInt))
             {
                 return newLocationX;
             }
@@ -1542,21 +1547,11 @@ namespace Auto7z_GUI
             if (format == "tar")
             {
                 CheckBoxForbiddenSplit.Visible = true;
-                if(!CheckBoxForbiddenSplit.Checked)
-                {
-                    TextBoxSize.Enabled = true;
-                }
-
-                else
-                {
-                    TextBoxSize.Enabled = false;
-                }
             }
 
             else
             {
                 CheckBoxForbiddenSplit.Visible = false;
-                TextBoxSize.Enabled = true;
             }
         }
 
@@ -1576,6 +1571,27 @@ namespace Auto7z_GUI
             if (format == "tar")
             {
                 CheckBoxZstd.Visible = true;
+
+                if(CheckBoxZstd.Checked)
+                {
+                    CheckBoxForbiddenSplit.Visible = true;
+
+                    if (!CheckBoxForbiddenSplit.Checked)
+                    {
+                        TextBoxSize.Enabled = true;
+                    }
+
+                    else
+                    {
+                        TextBoxSize.Enabled = false;
+                    }
+                }
+
+                else
+                {
+                    CheckBoxForbiddenSplit.Visible = false;
+                }
+
             }
 
             else
@@ -1669,11 +1685,22 @@ namespace Auto7z_GUI
             if (isZstd)
             {
                 zstd = "true";
+                if (format == "tar")
+                {
+                    CheckBoxForbiddenSplit.Visible = true;
+                }
+                
+                if(CheckBoxForbiddenSplit.Checked)
+                {
+                    TextBoxSize.Enabled = false;
+                }
             }
 
             else
             {
                 zstd = "false";
+                CheckBoxForbiddenSplit.Visible = false;
+                TextBoxSize.Enabled = true;
             }
         }
 
@@ -1698,7 +1725,12 @@ namespace Auto7z_GUI
             if (format=="tar")
             {
                 CheckBoxZstd.Visible = true;
-                CheckBoxForbiddenSplit.Visible = true;
+
+                if(CheckBoxZstd.Checked)
+                {
+                    CheckBoxForbiddenSplit.Visible = true;
+                }
+
                 TextBoxPassword.Enabled = false;
 
                 if (!CheckBoxForbiddenSplit.Checked)
