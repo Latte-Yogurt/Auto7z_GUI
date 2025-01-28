@@ -271,6 +271,137 @@ namespace Auto7z_GUI
                     }
                 }
 
+                if (format == "tar")
+                {
+                    if (!CHECK_SEVENZ_EXIST())
+                    {
+                        switch (currentLanguage)
+                        {
+                            case "zh-CN":
+                                MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "zh-TW":
+                                MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "en-US":
+                                MessageBox.Show("The 7z components (7z.exe 7z.dll) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                        }
+
+                        this.Close();
+                        return;
+                    }
+
+                    else if (!CHECK_LANG_EXIST())
+                    {
+                        switch (currentLanguage)
+                        {
+                            case "zh-CN":
+                                MessageBox.Show("程序工作路径下7z组件(Lang)不完整，可能导致7z本地化翻译出现问题。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                            case "zh-TW":
+                                MessageBox.Show("程式工作路徑下7z組件(Lang)不完整，可能導致7z本地化翻譯出現問題。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                            case "en-US":
+                                MessageBox.Show("The 7z component (Lang) in the program working path is incomplete, which may result in issues with 7z localization translation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                        }
+
+                        string command = GENERATE_COMMAND();
+
+                        if (command != null)
+                        {
+                            bool tarFinished = EXECUTE_COMMAND_BOOL(command);
+                            if (zstd=="true")
+                            {
+                                while(tarFinished)
+                                {
+                                    string zstdCommand = ZSTD_COMMAND();
+
+                                    bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
+
+                                    while(zstdFinished)
+                                    {
+                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        break;
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            this.Close();
+                        }
+
+                        else
+                        {
+                            switch (currentLanguage)
+                            {
+                                case "zh-CN":
+                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "zh-TW":
+                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "en-US":
+                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                            }
+
+                            this.Close();
+                            return;
+                        }
+                    }
+
+                    else
+                    {
+                        string command = GENERATE_COMMAND();
+
+                        if (command != null)
+                        {
+                            bool tarFinished = EXECUTE_COMMAND_BOOL(command);
+                            if (zstd == "true")
+                            {
+                                while (tarFinished)
+                                {
+                                    string zstdCommand = ZSTD_COMMAND();
+
+                                    bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
+
+                                    while (zstdFinished)
+                                    {
+                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        break;
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            this.Close();
+                        }
+
+                        else
+                        {
+                            switch (currentLanguage)
+                            {
+                                case "zh-CN":
+                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "zh-TW":
+                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "en-US":
+                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                            }
+
+                            this.Close();
+                            return;
+                        }
+                    }
+                }
+
                 if (format == "rar")
                 {
                     if (!CHECK_RAR_EXIST())
@@ -393,6 +524,46 @@ namespace Auto7z_GUI
             process.Start();
         }
 
+        private bool EXECUTE_COMMAND_BOOL(string command)
+        {
+            var process = new Process();
+            process.StartInfo.FileName = @"cmd.exe";
+            process.StartInfo.Arguments = $"/C \"{command}\"";
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+
+            try
+            {
+                process.Start();
+                process.WaitForExit(); // 等待进程完成
+                return process.ExitCode == 0; // 如果ExitCode为0，则返回true（表示成功）
+            }
+
+            catch (Exception ex)
+            {
+                switch (currentLanguage)
+                {
+                    case "zh-CN":
+                        MessageBox.Show($"出现错误: {ex.Message}。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                    case "zh-TW":
+                        MessageBox.Show($"出現錯誤: {ex.Message}。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                    case "en-US":
+                        MessageBox.Show($"An error occurred: {ex.Message}.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                }
+
+                return false; // 发生异常时返回false
+            }
+
+            finally
+            {
+                process.Dispose(); // 清理资源
+            }
+        }
+
+
         private string GENERATE_COMMAND()
         {
             CREATE_NEW_FOLDER();
@@ -408,48 +579,26 @@ namespace Auto7z_GUI
 
             if (format == "7z" || format == "zip")
             {
-                if (zstd == "true")
+                string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
+
+                // 添加分卷选项
+                if (size > targetSize && targetSize > 0)
                 {
-                    string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\" -m0=zstd -mx11";
-
-                    // 添加分卷选项
-                    if (size > targetSize && targetSize > 0)
-                    {
-                        command += $" -v{partSize}m";
-                    }
-
-                    // 添加密码选项
-                    if (!string.IsNullOrEmpty(password))
-                    {
-                        command += $" -p{password}";
-                    }
-
-                    return command;
+                    command += $" -v{partSize}m";
                 }
 
-                if (zstd == "false")
+                // 添加密码选项
+                if (!string.IsNullOrEmpty(password))
                 {
-                    string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
-
-                    // 添加分卷选项
-                    if (size > targetSize && targetSize > 0)
-                    {
-                        command += $" -v{partSize}m";
-                    }
-
-                    // 添加密码选项
-                    if (!string.IsNullOrEmpty(password))
-                    {
-                        command += $" -p{password}";
-                    }
-
-                    return command;
+                    command += $" -p{password}";
                 }
+
+                return command;
             }
 
             if (format == "rar")
             {
-                string command = $"@\"{winRarPath}\" a -ep1 -m3 \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
+                string command = $"@\"{winRarPath}\" a -ep1 \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
 
                 if (size > targetSize && targetSize > 0)
                 {
@@ -460,6 +609,13 @@ namespace Auto7z_GUI
                 {
                     command += $" -p{password}";
                 }
+
+                return command;
+            }
+
+            if (format == "tar")
+            {
+                string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
 
                 return command;
             }
@@ -499,6 +655,28 @@ namespace Auto7z_GUI
             }
         }
 
+        private string ZSTD_COMMAND()
+        {
+            if (!File.Exists(filePath) && !Directory.Exists(filePath))
+            {
+                return null; // 如果文件或目录不存在，返回 null
+            }
+
+            int targetSize = int.Parse(partSize);
+            bool isFile = File.Exists(filePath);
+            long size = isFile ? fileSize : folderSize; // 确定使用文件大小还是文件夹大小
+
+            string command = $"@\"{sevenZPath}\" a \"{newFolderPath}\\{fileName}.tar.zst\" \"{newFolderPath}\\{fileName}.tar\"";
+
+            // 添加分卷选项
+            if (size > targetSize && targetSize > 0)
+            {
+                command += $" -v{partSize}m";
+            }
+
+            return command;
+        }
+
         private long GET_FILE_SIZE(string filePath)
         {
             if (filePath != null)
@@ -506,7 +684,9 @@ namespace Auto7z_GUI
                 FileInfo fileInfo = new FileInfo(filePath);
                 long fileSize = fileInfo.Length;
 
-                return fileSize / (1024 * 1024);
+                long fileSizeMiB = fileSize / (1024 * 1024);
+
+                return fileSizeMiB;
             }
 
             else
@@ -531,7 +711,9 @@ namespace Auto7z_GUI
                     folderSize += file.Length;
                 }
 
-                return folderSize / (1024 * 1024);
+                long folderSizeMiB = folderSize / (1024 * 1024);
+
+                return folderSizeMiB;
             }
 
             else
@@ -1005,7 +1187,8 @@ namespace Auto7z_GUI
             {
                 "7z",
                 "zip",
-                "rar"
+                "rar",
+                "tar"
             };
 
             if (formatNode == null)
@@ -1204,6 +1387,7 @@ namespace Auto7z_GUI
             ComboBoxFormat.Items.Add("7z");
             ComboBoxFormat.Items.Add("zip");
             ComboBoxFormat.Items.Add("rar");
+            ComboBoxFormat.Items.Add("tar");
 
             if (format == "7z")
             {
@@ -1220,12 +1404,27 @@ namespace Auto7z_GUI
                 ComboBoxFormat.SelectedIndex = 2;
             }
 
+            if (format == "tar")
+            {
+                ComboBoxFormat.SelectedIndex = 3;
+            }
+
             ComboBoxFormat.SelectedIndexChanged += COMBOBOX_SELECTED_INDEX_CHANGED;
         }
 
         private void DEFAULT_PASSWORD_TEXTBOX()
         {
             TextBoxPassword.Text = password;
+
+            if (format == "tar")
+            {
+                TextBoxPassword.Enabled = false;
+            }
+
+            else
+            {
+                TextBoxPassword.Enabled = true;
+            }
         }
 
         private void DEFAULT_AUTOSAVE()
@@ -1255,7 +1454,7 @@ namespace Auto7z_GUI
                 CheckBoxZstd.Checked = true;
             }
 
-            if (format == "7z")
+            if (format == "tar")
             {
                 CheckBoxZstd.Visible = true;
             }
@@ -1359,14 +1558,16 @@ namespace Auto7z_GUI
 
         private void COMBOBOX_SELECTED_INDEX_CHANGED(object sender, EventArgs e)
         {
-            if (format=="7z")
+            if (format=="tar")
             {
                 CheckBoxZstd.Visible = true;
+                TextBoxPassword.Enabled = false;
             }
 
             else
             {
                 CheckBoxZstd.Visible = false;
+                TextBoxPassword.Enabled = true;
             }
         }
 
@@ -1565,6 +1766,124 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             await Task.Run(() => EXECUTE_COMMAND(command));
+                        }
+
+                        else
+                        {
+                            switch (currentLanguage)
+                            {
+                                case "zh-CN":
+                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "zh-TW":
+                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "en-US":
+                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                            }
+                        }
+                    }
+                }
+
+                if (format == "tar")
+                {
+                    if (!CHECK_SEVENZ_EXIST())
+                    {
+                        switch (currentLanguage)
+                        {
+                            case "zh-CN":
+                                MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "zh-TW":
+                                MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                            case "en-US":
+                                MessageBox.Show("The 7z components (7z.exe 7z.dll) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                break;
+                        }
+                    }
+
+                    else if (!CHECK_LANG_EXIST())
+                    {
+                        switch (currentLanguage)
+                        {
+                            case "zh-CN":
+                                MessageBox.Show("程序工作路径下7z组件(Lang)不完整，可能导致7z本地化翻译出现问题。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                            case "zh-TW":
+                                MessageBox.Show("程式工作路徑下7z組件(Lang)不完整，可能導致7z本地化翻譯出現問題。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                            case "en-US":
+                                MessageBox.Show("The 7z component (Lang) in the program working path is incomplete, which may result in issues with 7z localization translation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                break;
+                        }
+
+                        string command = GENERATE_COMMAND();
+
+                        if (command != null)
+                        {
+                            bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
+                            if (zstd == "true")
+                            {
+                                while (tarFinished)
+                                {
+                                    string zstdCommand = ZSTD_COMMAND();
+
+                                    bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
+
+                                    while (zstdFinished)
+                                    {
+                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        break;
+                                    }
+
+                                    break;
+                                }
+                            }
+                        }
+
+                        else
+                        {
+                            switch (currentLanguage)
+                            {
+                                case "zh-CN":
+                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "zh-TW":
+                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                                case "en-US":
+                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    break;
+                            }
+                        }
+                    }
+
+                    else
+                    {
+                        string command = GENERATE_COMMAND();
+
+                        if (command != null)
+                        {
+                            bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
+                            if (zstd == "true")
+                            {
+                                while (tarFinished)
+                                {
+                                    string zstdCommand = ZSTD_COMMAND();
+
+                                    bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
+
+                                    while (zstdFinished)
+                                    {
+                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        break;
+                                    }
+
+                                    break;
+                                }
+                            }
                         }
 
                         else
