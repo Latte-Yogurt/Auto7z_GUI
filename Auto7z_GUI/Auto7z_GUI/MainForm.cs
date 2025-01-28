@@ -24,6 +24,7 @@ namespace Auto7z_GUI
         public string partSize;
         public string format;
         public string password;
+        public string forbiddenTarSplit;
         public string autoSave;
         public string zstd;
         public string filePath;
@@ -165,12 +166,14 @@ namespace Auto7z_GUI
             partSize = GET_PARTSIZE(xmlPath);
             format = GET_FORMAT(xmlPath);
             password = GET_PASSWORD(xmlPath);
+            forbiddenTarSplit = GET_FORBIDDEN_TAR_SPLIT(xmlPath);
             autoSave = GET_AUTOSAVE(xmlPath);
             zstd = GET_ZSTD(xmlPath);
 
             DEFAULT_PARTSIZE_TEXTBOX();
             DEFAULT_FORMAT_MENU();
             DEFAULT_PASSWORD_TEXTBOX();
+            DEFAULT_FORBIDDEN_TAR_SPLIT();
             DEFAULT_AUTOSAVE();
             DEFAULT_ZSTD();
 
@@ -320,9 +323,13 @@ namespace Auto7z_GUI
 
                                     bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
 
-                                    while(zstdFinished)
+                                    while (zstdFinished)
                                     {
-                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
+                                        {
+                                            File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        }
+
                                         break;
                                     }
 
@@ -370,7 +377,11 @@ namespace Auto7z_GUI
 
                                     while (zstdFinished)
                                     {
-                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        if(File.Exists($"{newFolderPath}\\{fileName}.tar"))
+                                        {
+                                            File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        }
+
                                         break;
                                     }
 
@@ -468,6 +479,7 @@ namespace Auto7z_GUI
                         { "LabelSize","分卷大小：" },
                         { "LabelFormat","生成格式：" },
                         { "LabelPassword","添加密码：" },
+                        { "CheckBoxNeedSplit","禁止分卷"},
                         { "CheckBoxAutoSave","程序关闭时自动保存配置" },
                         { "ButtonConfig","保存配置" }
                     }
@@ -480,6 +492,7 @@ namespace Auto7z_GUI
                         { "LabelSize","分卷大小：" },
                         { "LabelFormat","生成格式：" },
                         { "LabelPassword","添加密碼：" },
+                        { "CheckBoxNeedSplit","禁止分卷"},
                         { "CheckBoxAutoSave","程式關閉時自動保存配置" },
                         { "ButtonConfig","保存配置" }
                     }
@@ -492,6 +505,7 @@ namespace Auto7z_GUI
                         { "LabelSize","Part Size：" },
                         { "LabelFormat","Generate Format：" },
                         { "LabelPassword","Add Password：" },
+                        { "CheckBoxNeedSplit","Forbidden split"},
                         { "CheckBoxAutoSave","Auto save config while exit" },
                         { "ButtonConfig","Save Config" }
                     }
@@ -507,6 +521,7 @@ namespace Auto7z_GUI
             LabelSize.Text = languageTexts[currentLanguage]["LabelSize"];
             LabelFormat.Text = languageTexts[currentLanguage]["LabelFormat"];
             LabelPassword.Text = languageTexts[currentLanguage]["LabelPassword"];
+            CheckBoxForbiddenSplit.Text = languageTexts[currentLanguage]["CheckBoxNeedSplit"];
             CheckBoxAutoSave.Text = languageTexts[currentLanguage]["CheckBoxAutoSave"];
             ButtonConfig.Text = languageTexts[currentLanguage]["ButtonConfig"];
 
@@ -566,11 +581,16 @@ namespace Auto7z_GUI
 
         private string GENERATE_COMMAND()
         {
-            CREATE_NEW_FOLDER();
+            bool createSuccess = CREATE_NEW_FOLDER();
 
             if (!File.Exists(filePath) && !Directory.Exists(filePath))
             {
                 return null; // 如果文件或目录不存在，返回 null
+            }
+
+            if(!createSuccess)
+            {
+                return null;
             }
 
             int targetSize = int.Parse(partSize);
@@ -623,7 +643,7 @@ namespace Auto7z_GUI
             return null;
         }
 
-        private void CREATE_NEW_FOLDER()
+        private bool CREATE_NEW_FOLDER()
         {
             newFolderPath = $"{directoryPath}\\{fileName}压缩文件";
 
@@ -632,6 +652,7 @@ namespace Auto7z_GUI
                 try
                 {
                     Directory.CreateDirectory(newFolderPath);
+                    return true;
                 }
 
                 catch (Exception)
@@ -649,15 +670,19 @@ namespace Auto7z_GUI
                             break;
                     }
 
-                    this.Close();
-                    return;
+                    return false;
                 }
+            }
+
+            else
+            {
+                return true;
             }
         }
 
         private string ZSTD_COMMAND()
         {
-            if (!File.Exists(filePath) && !Directory.Exists(filePath))
+            if (!File.Exists($"{newFolderPath}\\{fileName}.tar") || !Directory.Exists(newFolderPath))
             {
                 return null; // 如果文件或目录不存在，返回 null
             }
@@ -669,7 +694,7 @@ namespace Auto7z_GUI
             string command = $"@\"{sevenZPath}\" a \"{newFolderPath}\\{fileName}.tar.zst\" \"{newFolderPath}\\{fileName}.tar\"";
 
             // 添加分卷选项
-            if (size > targetSize && targetSize > 0)
+            if (size > targetSize && targetSize > 0 && forbiddenTarSplit == "false")
             {
                 command += $" -v{partSize}m";
             }
@@ -800,6 +825,7 @@ namespace Auto7z_GUI
                     new XElement("PartSize", "2048"),
                     new XElement("Format", "7z"),
                     new XElement("Password", ""),
+                    new XElement("ForbiddenTarSplit", "false"),
                     new XElement("AutoSave", "true"),
                     new XElement("Zstd","true")
                 );
@@ -818,6 +844,7 @@ namespace Auto7z_GUI
                     new XElement("PartSize", "2048"),
                     new XElement("Format", "7z"),
                     new XElement("Password", ""),
+                    new XElement("ForbiddenTarSplit","false"),
                     new XElement("AutoSave", "true"),
                     new XElement("Zstd", "true")
                 );
@@ -835,6 +862,7 @@ namespace Auto7z_GUI
                     new XElement("PartSize", "2048"),
                     new XElement("Format", "7z"),
                     new XElement("Password", ""),
+                    new XElement("ForbiddenTarSplit", "fasle"),
                     new XElement("AutoSave", "true"),
                     new XElement("Zstd", "true")
                 );
@@ -1320,6 +1348,63 @@ namespace Auto7z_GUI
             return autoSave;
         }
 
+        private string GET_FORBIDDEN_TAR_SPLIT(string configFilePath)
+        {
+            if (!File.Exists(configFilePath))
+            {
+                CREATE_DEFAULT_CONFIG(configFilePath);
+            }
+
+            XDocument xdoc;
+
+            try
+            {
+                // 加载 XML 文档
+                xdoc = XDocument.Load(configFilePath);
+            }
+
+            catch (XmlException)
+            {
+                // 如果加载失败，创建新的默认配置文件并返回默认值
+                CREATE_DEFAULT_CONFIG(configFilePath);
+
+                return "false";
+            }
+
+            var forbiddenTarSplitNode = xdoc.Descendants("ForbiddenTarSplit").FirstOrDefault();
+
+            var supportedBool = new HashSet<string>
+            {
+                "true",
+                "false"
+            };
+
+            if (forbiddenTarSplitNode == null)
+            {
+                XElement newNode = new XElement("ForbiddenTarSplit", "false");
+
+                xdoc.Root.Add(newNode);
+
+                xdoc.Save(configFilePath);
+
+                return "false";
+            }
+
+            var forbiddenTarSplit = forbiddenTarSplitNode.Value;
+
+            if (string.IsNullOrEmpty(forbiddenTarSplit))
+            {
+                return "false";
+            }
+
+            if (!supportedBool.Contains(forbiddenTarSplit))
+            {
+                return "false";
+            }
+
+            return forbiddenTarSplit;
+        }
+
         private string GET_ZSTD(string configFilePath)
         {
             if (!File.Exists(configFilePath))
@@ -1409,7 +1494,7 @@ namespace Auto7z_GUI
                 ComboBoxFormat.SelectedIndex = 3;
             }
 
-            ComboBoxFormat.SelectedIndexChanged += COMBOBOX_SELECTED_INDEX_CHANGED;
+            ComboBoxFormat.SelectedIndexChanged += COMBOBOX_FORMAT_SELECTED_INDEX_CHANGED_UI;
         }
 
         private void DEFAULT_PASSWORD_TEXTBOX()
@@ -1430,28 +1515,62 @@ namespace Auto7z_GUI
         private void DEFAULT_AUTOSAVE()
         {
             // 定义后台运行的默认显示状态
+            if (autoSave == "true")
+            {
+                CheckBoxAutoSave.Checked = true;
+            }
+
             if (autoSave == "false")
             {
                 CheckBoxAutoSave.Checked = false;
             }
+        }
 
-            if (autoSave == "true")
+        private void DEFAULT_FORBIDDEN_TAR_SPLIT()
+        {
+            // 定义后台运行的默认显示状态
+            if (forbiddenTarSplit == "true")
             {
-                CheckBoxAutoSave.Checked = true;
+                CheckBoxForbiddenSplit.Checked = true;
+            }
+
+            if (forbiddenTarSplit == "false")
+            {
+                CheckBoxForbiddenSplit.Checked = false;
+            }
+
+            if (format == "tar")
+            {
+                CheckBoxForbiddenSplit.Visible = true;
+                if(!CheckBoxForbiddenSplit.Checked)
+                {
+                    TextBoxSize.Enabled = true;
+                }
+
+                else
+                {
+                    TextBoxSize.Enabled = false;
+                }
+            }
+
+            else
+            {
+                CheckBoxForbiddenSplit.Visible = false;
+                TextBoxSize.Enabled = true;
             }
         }
 
         private void DEFAULT_ZSTD()
         {
             // 定义后台运行的默认显示状态
-            if (zstd == "false")
-            {
-                CheckBoxZstd.Checked = false;
-            }
-
             if (zstd == "true")
             {
                 CheckBoxZstd.Checked = true;
+            }
+
+            if (zstd == "false")
+            {
+                CheckBoxZstd.Checked = false;
             }
 
             if (format == "tar")
@@ -1471,6 +1590,7 @@ namespace Auto7z_GUI
             UPDATE_CONFIG($"{xmlPath}", "PartSize", $"{partSize}");
             UPDATE_CONFIG($"{xmlPath}", "Format", $"{format}");
             UPDATE_CONFIG($"{xmlPath}", "Password", $"{password}");
+            UPDATE_CONFIG($"{xmlPath}", "ForbiddenTarSplit", $"{forbiddenTarSplit}");
             UPDATE_CONFIG($"{xmlPath}", "AutoSave", $"{autoSave}");
             UPDATE_CONFIG($"{xmlPath}", "Zstd", $"{zstd}");
         }
@@ -1498,16 +1618,16 @@ namespace Auto7z_GUI
         {
             if (currentLanguage == "en-US")
             {
-                LabelFormat.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 20, MainPanel.Height / 2 - LabelFormat.Height / 2);
-                ComboBoxFormat.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 20, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - 1);
-                CheckBoxZstd.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 20 - 20 + ComboBoxFormat.Width, MainPanel.Height / 2 - CheckBoxZstd.Height / 2 + 2);
+                LabelFormat.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 30, MainPanel.Height / 2 - LabelFormat.Height / 2);
+                ComboBoxFormat.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 30, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - 1);
+                CheckBoxZstd.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 20 - 30 + ComboBoxFormat.Width, MainPanel.Height / 2 - CheckBoxZstd.Height / 2 + 2);
 
-                LabelSize.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 20, MainPanel.Height / 2 - LabelFormat.Height / 2 - this.Height / 6);
-                TextBoxSize.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 20, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - this.Height / 6);
-                LabelUnit.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 15 - 20 + TextBoxSize.Width, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - this.Height / 6 + 3);
+                LabelSize.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 30, MainPanel.Height / 2 - LabelFormat.Height / 2 - this.Height / 6);
+                TextBoxSize.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 30, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - this.Height / 6);
+                LabelUnit.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 15 - 30 + TextBoxSize.Width, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - this.Height / 6 + 3);
 
-                LabelPassword.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 20, MainPanel.Height / 2 - LabelFormat.Height / 2 + this.Height / 6);
-                TextBoxPassword.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 20, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 + this.Height / 6);
+                LabelPassword.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 30, MainPanel.Height / 2 - LabelFormat.Height / 2 + this.Height / 6);
+                TextBoxPassword.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 30, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 + this.Height / 6);
             }
 
             else
@@ -1525,6 +1645,7 @@ namespace Auto7z_GUI
             }
 
             CheckBoxAutoSave.Location = new Point(25, MainPanel.Height - CheckBoxAutoSave.Height - 20);
+            CheckBoxForbiddenSplit.Location = new Point(25, MainPanel.Height - CheckBoxForbiddenSplit.Height - 60);
             ButtonConfig.Location = new Point(MainPanel.Width - ButtonConfig.Width - 10, MainPanel.Height - ButtonConfig.Height - 10);
         }
 
@@ -1556,18 +1677,47 @@ namespace Auto7z_GUI
             }
         }
 
-        private void COMBOBOX_SELECTED_INDEX_CHANGED(object sender, EventArgs e)
+        private void CHECKBOX_TARSPLIT_CHECKED_CHANGED(object sender,EventArgs e)
+        {
+            bool isForbidden = CheckBoxForbiddenSplit.Checked;
+            if (isForbidden)
+            {
+                forbiddenTarSplit = "true";
+                TextBoxSize.Enabled = false;
+            }
+
+            else
+            {
+                forbiddenTarSplit = "false";
+                TextBoxSize.Enabled = true;
+            }
+        }
+
+        private void COMBOBOX_FORMAT_SELECTED_INDEX_CHANGED_UI(object sender, EventArgs e)
         {
             if (format=="tar")
             {
                 CheckBoxZstd.Visible = true;
+                CheckBoxForbiddenSplit.Visible = true;
                 TextBoxPassword.Enabled = false;
+
+                if (!CheckBoxForbiddenSplit.Checked)
+                {
+                    TextBoxSize.Enabled = true;
+                }
+
+                else
+                {
+                    TextBoxSize.Enabled = false;
+                }
             }
 
             else
             {
                 CheckBoxZstd.Visible = false;
+                CheckBoxForbiddenSplit.Visible = false;
                 TextBoxPassword.Enabled = true;
+                TextBoxSize.Enabled = true;
             }
         }
 
@@ -1600,7 +1750,7 @@ namespace Auto7z_GUI
             this.Location = new Point(locationX, locationY);
         }
 
-        private void COMBOBOX_FORMAT_SELECTED_INDEX_CHANGNED(object sender, EventArgs e)
+        private void COMBOBOX_FORMAT_SELECTED_INDEX_CHANGED(object sender, EventArgs e)
         {
             string selectedFormat = ComboBoxFormat.SelectedItem.ToString();
             format = selectedFormat;
@@ -1834,7 +1984,11 @@ namespace Auto7z_GUI
 
                                     while (zstdFinished)
                                     {
-                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
+                                        {
+                                            File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        }
+
                                         break;
                                     }
 
@@ -1877,7 +2031,11 @@ namespace Auto7z_GUI
 
                                     while (zstdFinished)
                                     {
-                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
+                                        {
+                                            File.Delete($"{newFolderPath}\\{fileName}.tar");
+                                        }
+
                                         break;
                                     }
 

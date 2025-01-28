@@ -31,6 +31,7 @@ namespace Auto7z_GUI
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.MainPanel = new System.Windows.Forms.Panel();
+            this.CheckBoxForbiddenSplit = new System.Windows.Forms.CheckBox();
             this.CheckBoxZstd = new System.Windows.Forms.CheckBox();
             this.CheckBoxAutoSave = new System.Windows.Forms.CheckBox();
             this.ComboBoxFormat = new System.Windows.Forms.ComboBox();
@@ -55,6 +56,7 @@ namespace Auto7z_GUI
             // 
             // MainPanel
             // 
+            this.MainPanel.Controls.Add(this.CheckBoxForbiddenSplit);
             this.MainPanel.Controls.Add(this.CheckBoxZstd);
             this.MainPanel.Controls.Add(this.CheckBoxAutoSave);
             this.MainPanel.Controls.Add(this.ComboBoxFormat);
@@ -69,13 +71,24 @@ namespace Auto7z_GUI
             this.MainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainPanel.Location = new System.Drawing.Point(0, 0);
             this.MainPanel.Name = "MainPanel";
-            this.MainPanel.Size = new System.Drawing.Size(478, 344);
+            this.MainPanel.Size = new System.Drawing.Size(478, 444);
             this.MainPanel.TabIndex = 0;
+            // 
+            // CheckBoxForbiddenSplit
+            // 
+            this.CheckBoxForbiddenSplit.AutoSize = true;
+            this.CheckBoxForbiddenSplit.Location = new System.Drawing.Point(12, 370);
+            this.CheckBoxForbiddenSplit.Name = "CheckBoxForbiddenSplit";
+            this.CheckBoxForbiddenSplit.Size = new System.Drawing.Size(108, 28);
+            this.CheckBoxForbiddenSplit.TabIndex = 11;
+            this.CheckBoxForbiddenSplit.Text = "禁用分卷";
+            this.CheckBoxForbiddenSplit.UseVisualStyleBackColor = true;
+            this.CheckBoxForbiddenSplit.CheckedChanged += new System.EventHandler(this.CHECKBOX_TARSPLIT_CHECKED_CHANGED);
             // 
             // CheckBoxZstd
             // 
             this.CheckBoxZstd.AutoSize = true;
-            this.CheckBoxZstd.Location = new System.Drawing.Point(309, 155);
+            this.CheckBoxZstd.Location = new System.Drawing.Point(316, 207);
             this.CheckBoxZstd.Name = "CheckBoxZstd";
             this.CheckBoxZstd.Size = new System.Drawing.Size(72, 28);
             this.CheckBoxZstd.TabIndex = 10;
@@ -86,7 +99,7 @@ namespace Auto7z_GUI
             // CheckBoxAutoSave
             // 
             this.CheckBoxAutoSave.AutoSize = true;
-            this.CheckBoxAutoSave.Location = new System.Drawing.Point(12, 304);
+            this.CheckBoxAutoSave.Location = new System.Drawing.Point(12, 404);
             this.CheckBoxAutoSave.Name = "CheckBoxAutoSave";
             this.CheckBoxAutoSave.Size = new System.Drawing.Size(234, 28);
             this.CheckBoxAutoSave.TabIndex = 9;
@@ -98,15 +111,15 @@ namespace Auto7z_GUI
             // 
             this.ComboBoxFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.ComboBoxFormat.FormattingEnabled = true;
-            this.ComboBoxFormat.Location = new System.Drawing.Point(195, 152);
+            this.ComboBoxFormat.Location = new System.Drawing.Point(202, 204);
             this.ComboBoxFormat.Name = "ComboBoxFormat";
             this.ComboBoxFormat.Size = new System.Drawing.Size(104, 32);
             this.ComboBoxFormat.TabIndex = 8;
-            this.ComboBoxFormat.SelectedIndexChanged += new System.EventHandler(this.COMBOBOX_FORMAT_SELECTED_INDEX_CHANGNED);
+            this.ComboBoxFormat.SelectedIndexChanged += new System.EventHandler(this.COMBOBOX_FORMAT_SELECTED_INDEX_CHANGED);
             // 
             // TextBoxPassword
             // 
-            this.TextBoxPassword.Location = new System.Drawing.Point(195, 206);
+            this.TextBoxPassword.Location = new System.Drawing.Point(202, 258);
             this.TextBoxPassword.Name = "TextBoxPassword";
             this.TextBoxPassword.Size = new System.Drawing.Size(145, 31);
             this.TextBoxPassword.TabIndex = 7;
@@ -115,7 +128,7 @@ namespace Auto7z_GUI
             // LabelPassword
             // 
             this.LabelPassword.AutoSize = true;
-            this.LabelPassword.Location = new System.Drawing.Point(105, 208);
+            this.LabelPassword.Location = new System.Drawing.Point(112, 260);
             this.LabelPassword.Name = "LabelPassword";
             this.LabelPassword.Size = new System.Drawing.Size(100, 24);
             this.LabelPassword.TabIndex = 6;
@@ -124,7 +137,7 @@ namespace Auto7z_GUI
             // LabelFormat
             // 
             this.LabelFormat.AutoSize = true;
-            this.LabelFormat.Location = new System.Drawing.Point(105, 156);
+            this.LabelFormat.Location = new System.Drawing.Point(112, 208);
             this.LabelFormat.Name = "LabelFormat";
             this.LabelFormat.Size = new System.Drawing.Size(100, 24);
             this.LabelFormat.TabIndex = 5;
@@ -133,7 +146,7 @@ namespace Auto7z_GUI
             // LabelUnit
             // 
             this.LabelUnit.AutoSize = true;
-            this.LabelUnit.Location = new System.Drawing.Point(305, 102);
+            this.LabelUnit.Location = new System.Drawing.Point(312, 154);
             this.LabelUnit.Name = "LabelUnit";
             this.LabelUnit.Size = new System.Drawing.Size(39, 24);
             this.LabelUnit.TabIndex = 4;
@@ -141,7 +154,7 @@ namespace Auto7z_GUI
             // 
             // ButtonConfig
             // 
-            this.ButtonConfig.Location = new System.Drawing.Point(325, 284);
+            this.ButtonConfig.Location = new System.Drawing.Point(325, 384);
             this.ButtonConfig.Name = "ButtonConfig";
             this.ButtonConfig.Size = new System.Drawing.Size(141, 48);
             this.ButtonConfig.TabIndex = 3;
@@ -151,7 +164,7 @@ namespace Auto7z_GUI
             // 
             // TextBoxSize
             // 
-            this.TextBoxSize.Location = new System.Drawing.Point(195, 100);
+            this.TextBoxSize.Location = new System.Drawing.Point(202, 152);
             this.TextBoxSize.Name = "TextBoxSize";
             this.TextBoxSize.Size = new System.Drawing.Size(104, 31);
             this.TextBoxSize.TabIndex = 1;
@@ -161,7 +174,7 @@ namespace Auto7z_GUI
             // LabelSize
             // 
             this.LabelSize.AutoSize = true;
-            this.LabelSize.Location = new System.Drawing.Point(105, 102);
+            this.LabelSize.Location = new System.Drawing.Point(112, 154);
             this.LabelSize.Name = "LabelSize";
             this.LabelSize.Size = new System.Drawing.Size(100, 24);
             this.LabelSize.TabIndex = 0;
@@ -177,7 +190,7 @@ namespace Auto7z_GUI
             this.AboutMenu});
             this.MenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MenuStrip.Name = "MenuStrip";
-            this.MenuStrip.Size = new System.Drawing.Size(478, 32);
+            this.MenuStrip.Size = new System.Drawing.Size(478, 36);
             this.MenuStrip.TabIndex = 2;
             this.MenuStrip.Text = "menuStrip1";
             // 
@@ -186,7 +199,7 @@ namespace Auto7z_GUI
             this.LanguageMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.LanguageMenuSelect});
             this.LanguageMenu.Name = "LanguageMenu";
-            this.LanguageMenu.Size = new System.Drawing.Size(62, 28);
+            this.LanguageMenu.Size = new System.Drawing.Size(62, 32);
             this.LanguageMenu.Text = "语言";
             // 
             // LanguageMenuSelect
@@ -225,7 +238,7 @@ namespace Auto7z_GUI
             this.AboutMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.AboutMenuAbout});
             this.AboutMenu.Name = "AboutMenu";
-            this.AboutMenu.Size = new System.Drawing.Size(62, 28);
+            this.AboutMenu.Size = new System.Drawing.Size(62, 32);
             this.AboutMenu.Text = "关于";
             // 
             // AboutMenuAbout
@@ -239,15 +252,15 @@ namespace Auto7z_GUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(478, 344);
+            this.ClientSize = new System.Drawing.Size(478, 444);
             this.Controls.Add(this.MainPanel);
             this.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.MenuStrip;
             this.Margin = new System.Windows.Forms.Padding(4);
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(500, 400);
-            this.MinimumSize = new System.Drawing.Size(500, 400);
+            this.MaximumSize = new System.Drawing.Size(600, 600);
+            this.MinimumSize = new System.Drawing.Size(500, 500);
             this.Name = "MainForm";
             this.Text = "Auto7z";
             this.Load += new System.EventHandler(this.MAINFORM_LOAD);
@@ -281,6 +294,7 @@ namespace Auto7z_GUI
         private System.Windows.Forms.ToolStripMenuItem LanguageMenuSelectenUS;
         private System.Windows.Forms.CheckBox CheckBoxAutoSave;
         private System.Windows.Forms.CheckBox CheckBoxZstd;
+        private System.Windows.Forms.CheckBox CheckBoxForbiddenSplit;
     }
 }
 
