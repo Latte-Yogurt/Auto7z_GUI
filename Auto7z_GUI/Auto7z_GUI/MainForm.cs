@@ -25,6 +25,7 @@ namespace Auto7z_GUI
         public string format;
         public string password;
         public string autoSave;
+        public string zstd;
         public string filePath;
         public string fileName;
         public string directoryPath;
@@ -165,11 +166,13 @@ namespace Auto7z_GUI
             format = GET_FORMAT(xmlPath);
             password = GET_PASSWORD(xmlPath);
             autoSave = GET_AUTOSAVE(xmlPath);
+            zstd = GET_ZSTD(xmlPath);
 
             DEFAULT_PARTSIZE_TEXTBOX();
             DEFAULT_FORMAT_MENU();
             DEFAULT_PASSWORD_TEXTBOX();
             DEFAULT_AUTOSAVE();
+            DEFAULT_ZSTD();
 
             if (filePath != null)
             {
@@ -405,26 +408,48 @@ namespace Auto7z_GUI
 
             if (format == "7z" || format == "zip")
             {
-                string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
-
-                // 添加分卷选项
-                if (size > targetSize && targetSize > 0)
+                if (zstd == "true")
                 {
-                    command += $" -v{partSize}m";
+                    string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\" -m0=zstd -mx11";
+
+                    // 添加分卷选项
+                    if (size > targetSize && targetSize > 0)
+                    {
+                        command += $" -v{partSize}m";
+                    }
+
+                    // 添加密码选项
+                    if (!string.IsNullOrEmpty(password))
+                    {
+                        command += $" -p{password}";
+                    }
+
+                    return command;
                 }
 
-                // 添加密码选项
-                if (!string.IsNullOrEmpty(password))
+                if (zstd == "false")
                 {
-                    command += $" -p{password}";
-                }
+                    string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
 
-                return command;
+                    // 添加分卷选项
+                    if (size > targetSize && targetSize > 0)
+                    {
+                        command += $" -v{partSize}m";
+                    }
+
+                    // 添加密码选项
+                    if (!string.IsNullOrEmpty(password))
+                    {
+                        command += $" -p{password}";
+                    }
+
+                    return command;
+                }
             }
 
             if (format == "rar")
             {
-                string command = $"@\"{winRarPath}\" a -ep1 \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
+                string command = $"@\"{winRarPath}\" a -ep1 -m3 \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
 
                 if (size > targetSize && targetSize > 0)
                 {
@@ -590,10 +615,11 @@ namespace Auto7z_GUI
                     new XElement("Language", $"{currentLanguage}"),
                     new XElement("LocationX", $"{newLocationX}"),
                     new XElement("LocationY", $"{newLocationY}"),
-                    new XElement("PartSize", "2000"),
+                    new XElement("PartSize", "2048"),
                     new XElement("Format", "7z"),
                     new XElement("Password", ""),
-                    new XElement("AutoSave", "true")
+                    new XElement("AutoSave", "true"),
+                    new XElement("Zstd","true")
                 );
 
                 defaultConfig.Save(configFilePath);
@@ -607,10 +633,11 @@ namespace Auto7z_GUI
                     new XElement("Language", $"{currentCulture.Name}"),
                     new XElement("LocationX", $"{newLocationX}"),
                     new XElement("LocationY", $"{newLocationY}"),
-                    new XElement("PartSize", "2000"),
+                    new XElement("PartSize", "2048"),
                     new XElement("Format", "7z"),
                     new XElement("Password", ""),
-                    new XElement("AutoSave", "true")
+                    new XElement("AutoSave", "true"),
+                    new XElement("Zstd", "true")
                 );
 
                 defaultConfig.Save(configFilePath);
@@ -623,10 +650,11 @@ namespace Auto7z_GUI
                     new XElement("Language", "en-US"),
                     new XElement("LocationX", $"{newLocationX}"),
                     new XElement("LocationY", $"{newLocationY}"),
-                    new XElement("PartSize", "2000"),
+                    new XElement("PartSize", "2048"),
                     new XElement("Format", "7z"),
                     new XElement("Password", ""),
-                    new XElement("AutoSave", "true")
+                    new XElement("AutoSave", "true"),
+                    new XElement("Zstd", "true")
                 );
 
                 defaultConfig.Save(configFilePath);
@@ -911,20 +939,20 @@ namespace Auto7z_GUI
                 // 如果加载失败，创建新的默认配置文件并返回默认值
                 CREATE_DEFAULT_CONFIG(configFilePath);
 
-                return "2000";
+                return "2048";
             }
 
             var partSizeNode = xdoc.Descendants("PartSize").FirstOrDefault();
 
             if (partSizeNode == null)
             {
-                XElement newNode = new XElement("PartSize", "2000");
+                XElement newNode = new XElement("PartSize", "2048");
 
                 xdoc.Root.Add(newNode);
 
                 xdoc.Save(configFilePath);
 
-                return "2000";
+                return "2048";
             }
 
             var partSize = partSizeNode.Value;
@@ -932,12 +960,12 @@ namespace Auto7z_GUI
 
             if (string.IsNullOrEmpty(partSize))
             {
-                return "2000";
+                return "2048";
             }
 
             if (!int.TryParse(partSize, out partSizeToInt))
             {
-                return "2000";
+                return "2048";
             }
 
             if (partSizeToInt < 0)
@@ -1077,6 +1105,12 @@ namespace Auto7z_GUI
 
             var autoSaveNode = xdoc.Descendants("AutoSave").FirstOrDefault();
 
+            var supportedBool = new HashSet<string>
+            {
+                "true",
+                "false"
+            };
+
             if (autoSaveNode == null)
             {
                 XElement newNode = new XElement("AutoSave", "true");
@@ -1095,7 +1129,69 @@ namespace Auto7z_GUI
                 return "true";
             }
 
+            if (!supportedBool.Contains(autoSave))
+            {
+                return "true";
+            }
+
             return autoSave;
+        }
+
+        private string GET_ZSTD(string configFilePath)
+        {
+            if (!File.Exists(configFilePath))
+            {
+                CREATE_DEFAULT_CONFIG(configFilePath);
+            }
+
+            XDocument xdoc;
+
+            try
+            {
+                // 加载 XML 文档
+                xdoc = XDocument.Load(configFilePath);
+            }
+
+            catch (XmlException)
+            {
+                // 如果加载失败，创建新的默认配置文件并返回默认值
+                CREATE_DEFAULT_CONFIG(configFilePath);
+
+                return "true";
+            }
+
+            var zstdNode = xdoc.Descendants("Zstd").FirstOrDefault();
+
+            var supportedBool = new HashSet<string>
+            {
+                "true",
+                "false"
+            };
+
+            if (zstdNode == null)
+            {
+                XElement newNode = new XElement("Zstd", "true");
+
+                xdoc.Root.Add(newNode);
+
+                xdoc.Save(configFilePath);
+
+                return "true";
+            }
+
+            var zstd = zstdNode.Value;
+
+            if (string.IsNullOrEmpty(zstd))
+            {
+                return "true";
+            }
+
+            if (!supportedBool.Contains(zstd))
+            {
+                return "true";
+            }
+
+            return zstd;
         }
 
         private void DEFAULT_PARTSIZE_TEXTBOX()
@@ -1123,6 +1219,8 @@ namespace Auto7z_GUI
             {
                 ComboBoxFormat.SelectedIndex = 2;
             }
+
+            ComboBoxFormat.SelectedIndexChanged += COMBOBOX_SELECTED_INDEX_CHANGED;
         }
 
         private void DEFAULT_PASSWORD_TEXTBOX()
@@ -1144,6 +1242,30 @@ namespace Auto7z_GUI
             }
         }
 
+        private void DEFAULT_ZSTD()
+        {
+            // 定义后台运行的默认显示状态
+            if (zstd == "false")
+            {
+                CheckBoxZstd.Checked = false;
+            }
+
+            if (zstd == "true")
+            {
+                CheckBoxZstd.Checked = true;
+            }
+
+            if (format == "7z")
+            {
+                CheckBoxZstd.Visible = true;
+            }
+
+            else
+            {
+                CheckBoxZstd.Visible = false;
+            }
+        }
+
         private void SAVE_CONFIG()
         {
             UPDATE_CONFIG($"{xmlPath}", "Language", $"{currentLanguage}");
@@ -1151,6 +1273,7 @@ namespace Auto7z_GUI
             UPDATE_CONFIG($"{xmlPath}", "Format", $"{format}");
             UPDATE_CONFIG($"{xmlPath}", "Password", $"{password}");
             UPDATE_CONFIG($"{xmlPath}", "AutoSave", $"{autoSave}");
+            UPDATE_CONFIG($"{xmlPath}", "Zstd", $"{zstd}");
         }
 
         private void BUTTON_CONFIG_CLICK(object sender, EventArgs e)
@@ -1176,27 +1299,29 @@ namespace Auto7z_GUI
         {
             if (currentLanguage == "en-US")
             {
-                LabelFormat.Location = new Point(MainPanel.Width / 2 - LabelFormat.Width / 2 - ComboBoxFormat.Width / 2 - 10 - 20, MainPanel.Height / 2 - LabelFormat.Height / 2);
+                LabelFormat.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 20, MainPanel.Height / 2 - LabelFormat.Height / 2);
                 ComboBoxFormat.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 20, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - 1);
+                CheckBoxZstd.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 20 - 20 + ComboBoxFormat.Width, MainPanel.Height / 2 - CheckBoxZstd.Height / 2 + 2);
 
-                LabelSize.Location = new Point(MainPanel.Width / 2 - LabelFormat.Width / 2 - ComboBoxFormat.Width / 2 - 10 - 20, MainPanel.Height / 2 - LabelFormat.Height / 2 - this.Height / 6);
+                LabelSize.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 20, MainPanel.Height / 2 - LabelFormat.Height / 2 - this.Height / 6);
                 TextBoxSize.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 20, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - this.Height / 6);
                 LabelUnit.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 15 - 20 + TextBoxSize.Width, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - this.Height / 6 + 3);
 
-                LabelPassword.Location = new Point(MainPanel.Width / 2 - LabelFormat.Width / 2 - ComboBoxFormat.Width / 2 - 10 - 20, MainPanel.Height / 2 - LabelFormat.Height / 2 + this.Height / 6);
+                LabelPassword.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 20, MainPanel.Height / 2 - LabelFormat.Height / 2 + this.Height / 6);
                 TextBoxPassword.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 20, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 + this.Height / 6);
             }
 
             else
             {
-                LabelFormat.Location = new Point(MainPanel.Width / 2 - LabelFormat.Width / 2 - ComboBoxFormat.Width / 2 - 10 - 30, MainPanel.Height / 2 - LabelFormat.Height / 2);
+                LabelFormat.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 30, MainPanel.Height / 2 - LabelFormat.Height / 2);
                 ComboBoxFormat.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 30, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - 1);
+                CheckBoxZstd.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 20 - 30 + ComboBoxFormat.Width, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 + 2);
 
-                LabelSize.Location = new Point(MainPanel.Width / 2 - LabelFormat.Width / 2 - ComboBoxFormat.Width / 2 - 10 - 30, MainPanel.Height / 2 - LabelFormat.Height / 2 - this.Height / 6);
+                LabelSize.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 30, MainPanel.Height / 2 - LabelFormat.Height / 2 - this.Height / 6);
                 TextBoxSize.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 30, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - this.Height / 6);
                 LabelUnit.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 15 - 30 + TextBoxSize.Width, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 - this.Height / 6 + 3);
 
-                LabelPassword.Location = new Point(MainPanel.Width / 2 - LabelFormat.Width / 2 - ComboBoxFormat.Width / 2 - 10 - 30, MainPanel.Height / 2 - LabelFormat.Height / 2 + this.Height / 6);
+                LabelPassword.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 - LabelFormat.Width / 2 - 10 - 30, MainPanel.Height / 2 - LabelFormat.Height / 2 + this.Height / 6);
                 TextBoxPassword.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 + 10 - 30, MainPanel.Height / 2 - ComboBoxFormat.Height / 2 + this.Height / 6);
             }
 
@@ -1215,6 +1340,33 @@ namespace Auto7z_GUI
             else
             {
                 autoSave = "false";
+            }
+        }
+
+        private void CHECKBOX_ZSTD_CHECKED_CHANGED(object sender, EventArgs e)
+        {
+            bool isZstd = CheckBoxZstd.Checked;
+            if (isZstd)
+            {
+                zstd = "true";
+            }
+
+            else
+            {
+                zstd = "false";
+            }
+        }
+
+        private void COMBOBOX_SELECTED_INDEX_CHANGED(object sender, EventArgs e)
+        {
+            if (format=="7z")
+            {
+                CheckBoxZstd.Visible = true;
+            }
+
+            else
+            {
+                CheckBoxZstd.Visible = false;
             }
         }
 

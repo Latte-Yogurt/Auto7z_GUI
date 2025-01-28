@@ -31,6 +31,8 @@ namespace Auto7z_GUI
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.MainPanel = new System.Windows.Forms.Panel();
+            this.CheckBoxZstd = new System.Windows.Forms.CheckBox();
+            this.CheckBoxAutoSave = new System.Windows.Forms.CheckBox();
             this.ComboBoxFormat = new System.Windows.Forms.ComboBox();
             this.TextBoxPassword = new System.Windows.Forms.TextBox();
             this.LabelPassword = new System.Windows.Forms.Label();
@@ -47,13 +49,13 @@ namespace Auto7z_GUI
             this.LanguageMenuSelectenUS = new System.Windows.Forms.ToolStripMenuItem();
             this.AboutMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.AboutMenuAbout = new System.Windows.Forms.ToolStripMenuItem();
-            this.CheckBoxAutoSave = new System.Windows.Forms.CheckBox();
             this.MainPanel.SuspendLayout();
             this.MenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainPanel
             // 
+            this.MainPanel.Controls.Add(this.CheckBoxZstd);
             this.MainPanel.Controls.Add(this.CheckBoxAutoSave);
             this.MainPanel.Controls.Add(this.ComboBoxFormat);
             this.MainPanel.Controls.Add(this.TextBoxPassword);
@@ -69,6 +71,28 @@ namespace Auto7z_GUI
             this.MainPanel.Name = "MainPanel";
             this.MainPanel.Size = new System.Drawing.Size(478, 344);
             this.MainPanel.TabIndex = 0;
+            // 
+            // CheckBoxZstd
+            // 
+            this.CheckBoxZstd.AutoSize = true;
+            this.CheckBoxZstd.Location = new System.Drawing.Point(309, 155);
+            this.CheckBoxZstd.Name = "CheckBoxZstd";
+            this.CheckBoxZstd.Size = new System.Drawing.Size(72, 28);
+            this.CheckBoxZstd.TabIndex = 10;
+            this.CheckBoxZstd.Text = "zstd";
+            this.CheckBoxZstd.UseVisualStyleBackColor = true;
+            this.CheckBoxZstd.CheckedChanged += new System.EventHandler(this.CHECKBOX_ZSTD_CHECKED_CHANGED);
+            // 
+            // CheckBoxAutoSave
+            // 
+            this.CheckBoxAutoSave.AutoSize = true;
+            this.CheckBoxAutoSave.Location = new System.Drawing.Point(12, 304);
+            this.CheckBoxAutoSave.Name = "CheckBoxAutoSave";
+            this.CheckBoxAutoSave.Size = new System.Drawing.Size(234, 28);
+            this.CheckBoxAutoSave.TabIndex = 9;
+            this.CheckBoxAutoSave.Text = "程序关闭时自动保存配置";
+            this.CheckBoxAutoSave.UseVisualStyleBackColor = true;
+            this.CheckBoxAutoSave.CheckedChanged += new System.EventHandler(this.CHECKBOX_AUTOSAVE_CHECKED_CHANGED);
             // 
             // ComboBoxFormat
             // 
@@ -153,7 +177,7 @@ namespace Auto7z_GUI
             this.AboutMenu});
             this.MenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MenuStrip.Name = "MenuStrip";
-            this.MenuStrip.Size = new System.Drawing.Size(478, 36);
+            this.MenuStrip.Size = new System.Drawing.Size(478, 32);
             this.MenuStrip.TabIndex = 2;
             this.MenuStrip.Text = "menuStrip1";
             // 
@@ -162,7 +186,7 @@ namespace Auto7z_GUI
             this.LanguageMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.LanguageMenuSelect});
             this.LanguageMenu.Name = "LanguageMenu";
-            this.LanguageMenu.Size = new System.Drawing.Size(62, 32);
+            this.LanguageMenu.Size = new System.Drawing.Size(62, 28);
             this.LanguageMenu.Text = "语言";
             // 
             // LanguageMenuSelect
@@ -201,7 +225,7 @@ namespace Auto7z_GUI
             this.AboutMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.AboutMenuAbout});
             this.AboutMenu.Name = "AboutMenu";
-            this.AboutMenu.Size = new System.Drawing.Size(62, 32);
+            this.AboutMenu.Size = new System.Drawing.Size(62, 28);
             this.AboutMenu.Text = "关于";
             // 
             // AboutMenuAbout
@@ -210,17 +234,6 @@ namespace Auto7z_GUI
             this.AboutMenuAbout.Size = new System.Drawing.Size(172, 34);
             this.AboutMenuAbout.Text = "Auto7z";
             this.AboutMenuAbout.Click += new System.EventHandler(this.ABOUTMENU_ABOUT);
-            // 
-            // CheckBoxAutoSave
-            // 
-            this.CheckBoxAutoSave.AutoSize = true;
-            this.CheckBoxAutoSave.Location = new System.Drawing.Point(12, 304);
-            this.CheckBoxAutoSave.Name = "CheckBoxAutoSave";
-            this.CheckBoxAutoSave.Size = new System.Drawing.Size(234, 28);
-            this.CheckBoxAutoSave.TabIndex = 9;
-            this.CheckBoxAutoSave.Text = "程序关闭时自动保存配置";
-            this.CheckBoxAutoSave.UseVisualStyleBackColor = true;
-            this.CheckBoxAutoSave.CheckedChanged += new System.EventHandler(this.CHECKBOX_AUTOSAVE_CHECKED_CHANGED);
             // 
             // MainForm
             // 
@@ -267,6 +280,7 @@ namespace Auto7z_GUI
         private System.Windows.Forms.ToolStripMenuItem LanguageMenuSelectzhTW;
         private System.Windows.Forms.ToolStripMenuItem LanguageMenuSelectenUS;
         private System.Windows.Forms.CheckBox CheckBoxAutoSave;
+        private System.Windows.Forms.CheckBox CheckBoxZstd;
     }
 }
 
