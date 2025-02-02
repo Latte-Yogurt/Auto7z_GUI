@@ -19,6 +19,8 @@ namespace Auto7z_GUI
 
         public static string currentLanguage;
         public long sevenZUsageCount;
+        public long rarUsageCount;
+        public long auto7zUsageCount;
         public string xmlPath;
         public int locationX;
         public int locationY;
@@ -52,8 +54,6 @@ namespace Auto7z_GUI
         {
             InitializeComponent();
 
-            SET_COMPONENT_POSITION();
-
             string workPath = GET_WORK_PATH(); // 获取程序路径
             string xml = @"config.xml";
             xmlPath = Path.Combine(workPath, xml);
@@ -61,7 +61,8 @@ namespace Auto7z_GUI
 
             currentLanguage = GET_CURRENT_LANGUAGE(xmlPath);
 
-            sevenZUsageCount = GET_7Z_USAGE_COUNT(xmlPath);
+            sevenZUsageCount = GET_SEVENZ_USAGE_COUNT(xmlPath);
+            rarUsageCount = GET_RAR_USAGE_COUNT(xmlPath);
 
             InitializeLanguageTexts();
             UpdateLanguage();
@@ -153,7 +154,7 @@ namespace Auto7z_GUI
             DEFAULT_PARTSIZE_TEXTBOX();
             DEFAULT_FORMAT_MENU();
             DEFAULT_PASSWORD_TEXTBOX();
-            DEFAULT_FORBIDDEN_TAR_SPLIT();
+            DEFAULT_DISABLE_TAR_SPLIT();
             DEFAULT_AUTOSAVE();
             DEFAULT_ZSTD();
 
@@ -180,7 +181,8 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             EXECUTE_COMMAND(command);
-                            ADD_7Z_USAGE_COUNT();
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
                             this.Close();
                         }
 
@@ -199,7 +201,8 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             EXECUTE_COMMAND(command);
-                            ADD_7Z_USAGE_COUNT();
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
                             this.Close();
                         }
 
@@ -234,8 +237,7 @@ namespace Auto7z_GUI
                         {
                             if (Directory.Exists($"{newFolderPath}"))
                             {
-                                DELETE_DIRECTORY_CONTENTS(newFolderPath);
-                                Directory.Delete(newFolderPath);
+                                DELETE_OLD_TAR_ZST(newFolderPath);
                             }
 
                             bool tarFinished = EXECUTE_COMMAND_BOOL(command);
@@ -261,7 +263,8 @@ namespace Auto7z_GUI
                                 }
                             }
 
-                            ADD_7Z_USAGE_COUNT();
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
                             this.Close();
                         }
 
@@ -281,8 +284,7 @@ namespace Auto7z_GUI
                         {
                             if (Directory.Exists($"{newFolderPath}"))
                             {
-                                DELETE_DIRECTORY_CONTENTS(newFolderPath);
-                                Directory.Delete(newFolderPath);
+                                DELETE_OLD_TAR_ZST(newFolderPath);
                             }
 
                             bool tarFinished = EXECUTE_COMMAND_BOOL(command);
@@ -308,7 +310,8 @@ namespace Auto7z_GUI
                                 }
                             }
 
-                            ADD_7Z_USAGE_COUNT();
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
                             this.Close();
                         }
 
@@ -337,6 +340,8 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             EXECUTE_COMMAND(command);
+                            ADD_RAR_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
                             this.Close();
                         }
 
@@ -567,17 +572,26 @@ namespace Auto7z_GUI
             return command;
         }
 
-        private void DELETE_DIRECTORY_CONTENTS(string dirPath)
+        private void DELETE_OLD_TAR_ZST(string dirPath)
         {
-            foreach (string file in Directory.GetFiles(dirPath))
+            if (Directory.Exists(dirPath))
             {
-                File.Delete(file); // 删除文件
-            }
+                string[] files = Directory.GetFiles(dirPath);
 
-            foreach (string subDir in Directory.GetDirectories(dirPath))
-            {
-                DELETE_DIRECTORY_CONTENTS(subDir); // 递归调用删除子目录
-                Directory.Delete(subDir); // 删除子目录
+                foreach (string file in files)
+                {
+                    if (Path.GetFileName(file).Contains("tar.zst"))
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch (Exception ex)
+                        {
+                            ERROR_EXCEPTION_MESSAGE(ex);
+                        }
+                    }
+                }
             }
         }
 
@@ -654,7 +668,6 @@ namespace Auto7z_GUI
             }
         }
 
-
         private bool CHECK_SEVENZ_EXIST()
         {
             return File.Exists(sevenZPath) && File.Exists(sevenZDllPath);
@@ -711,14 +724,16 @@ namespace Auto7z_GUI
                     XElement defaultConfig = new XElement("Configuration",
                         new XElement("Language", $"{currentLanguage}"),
                         new XElement("SevenZUsageCount", "0"),
+                        new XElement("RarUsageCount", "0"),
                         new XElement("LocationX", $"{newLocationX}"),
                         new XElement("LocationY", $"{newLocationY}"),
                         new XElement("PartSize", "2048"),
                         new XElement("Format", "7z"),
                         new XElement("Password", ""),
+                        new XElement("Zstd", "true"),
                         new XElement("DisableTarSplit", "false"),
                         new XElement("AutoSave", "true"),
-                        new XElement("Zstd", "true")
+                        new XElement("Auto7zUsageCount", "0")
                     );
 
                     defaultConfig.Save(configFilePath);
@@ -730,14 +745,16 @@ namespace Auto7z_GUI
                     XElement defaultConfig = new XElement("Configuration",
                         new XElement("Language", $"{currentCulture.Name}"),
                         new XElement("SevenZUsageCount", "0"),
+                        new XElement("RarUsageCount", "0"),
                         new XElement("LocationX", $"{newLocationX}"),
                         new XElement("LocationY", $"{newLocationY}"),
                         new XElement("PartSize", "2048"),
                         new XElement("Format", "7z"),
                         new XElement("Password", ""),
+                        new XElement("Zstd", "true"),
                         new XElement("DisableTarSplit", "false"),
                         new XElement("AutoSave", "true"),
-                        new XElement("Zstd", "true")
+                        new XElement("Auto7zUsageCount", "0")
                     );
 
                     defaultConfig.Save(configFilePath);
@@ -750,14 +767,16 @@ namespace Auto7z_GUI
                 XElement defaultConfig = new XElement("Configuration",
                     new XElement("Language", "en-US"),
                     new XElement("SevenZUsageCount", "0"),
+                    new XElement("RarUsageCount", "0"),
                     new XElement("LocationX", $"{newLocationX}"),
                     new XElement("LocationY", $"{newLocationY}"),
                     new XElement("PartSize", "2048"),
                     new XElement("Format", "7z"),
                     new XElement("Password", ""),
+                    new XElement("Zstd", "true"),
                     new XElement("DisableTarSplit", "false"),
                     new XElement("AutoSave", "true"),
-                    new XElement("Zstd", "true")
+                    new XElement("Auto7zUsageCount", "0")
                 );
 
                 defaultConfig.Save(configFilePath);
@@ -903,7 +922,7 @@ namespace Auto7z_GUI
             return language;
         }
 
-        private long GET_7Z_USAGE_COUNT(string configFilePath)
+        private long GET_SEVENZ_USAGE_COUNT(string configFilePath)
         {
             if (!File.Exists(configFilePath))
             {
@@ -959,6 +978,64 @@ namespace Auto7z_GUI
             }
 
             return sevenZUsageCountToLong;
+        }
+
+        private long GET_RAR_USAGE_COUNT(string configFilePath)
+        {
+            if (!File.Exists(configFilePath))
+            {
+                CREATE_DEFAULT_CONFIG(configFilePath);
+            }
+
+            XDocument xdoc;
+
+            try
+            {
+                // 加载 XML 文档
+                xdoc = XDocument.Load(configFilePath);
+            }
+
+            catch (XmlException)
+            {
+                // 如果加载失败，创建新的默认配置文件并返回默认值
+                CREATE_DEFAULT_CONFIG(configFilePath);
+
+                return 0;
+            }
+
+            var rarUsageCountNode = xdoc.Descendants("RarUsageCount").FirstOrDefault();
+
+            if (rarUsageCountNode == null)
+            {
+
+                XElement newNode = new XElement("RarUsageCount", "0");
+
+                xdoc.Root.Add(newNode);
+
+                xdoc.Save(configFilePath);
+
+                return 0;
+            }
+
+            var rarUsageCount = rarUsageCountNode.Value;
+            long rarUsageCountToLong;
+
+            if (string.IsNullOrEmpty(rarUsageCount))
+            {
+                return 0;
+            }
+
+            if (!long.TryParse(rarUsageCount, out rarUsageCountToLong))
+            {
+                return 0;
+            }
+
+            if (rarUsageCountToLong < 0)
+            {
+                return 0;
+            }
+
+            return rarUsageCountToLong;
         }
 
         private int GET_LOCATION_X(string configFilePath)
@@ -1477,7 +1554,7 @@ namespace Auto7z_GUI
             }
         }
 
-        private void DEFAULT_FORBIDDEN_TAR_SPLIT()
+        private void DEFAULT_DISABLE_TAR_SPLIT()
         {
             // 定义后台运行的默认显示状态
             if (disableTarSplit == "true")
@@ -1550,12 +1627,14 @@ namespace Auto7z_GUI
         {
             UPDATE_CONFIG($"{xmlPath}", "Language", $"{currentLanguage}");
             UPDATE_CONFIG($"{xmlPath}", "SevenZUsageCount", $"{sevenZUsageCount}");
+            UPDATE_CONFIG($"{xmlPath}", "RarUsageCount", $"{rarUsageCount}");
             UPDATE_CONFIG($"{xmlPath}", "PartSize", $"{partSize}");
             UPDATE_CONFIG($"{xmlPath}", "Format", $"{format}");
+            UPDATE_CONFIG($"{xmlPath}", "Zstd", $"{zstd}");
             UPDATE_CONFIG($"{xmlPath}", "Password", $"{password}");
             UPDATE_CONFIG($"{xmlPath}", "DisableTarSplit", $"{disableTarSplit}");
             UPDATE_CONFIG($"{xmlPath}", "AutoSave", $"{autoSave}");
-            UPDATE_CONFIG($"{xmlPath}", "Zstd", $"{zstd}");
+            UPDATE_CONFIG($"{xmlPath}", "Auto7zUsageCount", $"{auto7zUsageCount}");
         }
 
         private void SAVE_LOCATION()
@@ -1567,10 +1646,22 @@ namespace Auto7z_GUI
             UPDATE_CONFIG($"{xmlPath}", "LocationY", $"{locationY}");
         }
 
-        private void ADD_7Z_USAGE_COUNT()
+        private void ADD_SEVENZ_USAGE_COUNT()
         {
             sevenZUsageCount++;
             UPDATE_CONFIG($"{xmlPath}", "SevenZUsageCount", $"{sevenZUsageCount}");
+        }
+
+        private void ADD_RAR_USAGE_COUNT()
+        {
+            rarUsageCount++;
+            UPDATE_CONFIG($"{xmlPath}", "RarUsageCount", $"{rarUsageCount}");
+        }
+
+        private void ADD_AUTO7Z_USAGE_COUNT()
+        {
+            auto7zUsageCount = sevenZUsageCount + rarUsageCount;
+            UPDATE_CONFIG($"{xmlPath}", "Auto7zUsageCount", $"{auto7zUsageCount}");
         }
 
         private void NOTICE_CONFIG_SAVED()
@@ -1787,13 +1878,12 @@ namespace Auto7z_GUI
             if (format=="tar")
             {
                 CheckBoxZstd.Visible = true;
+                TextBoxPassword.Enabled = false;
 
-                if(CheckBoxZstd.Checked)
+                if (CheckBoxZstd.Checked)
                 {
                     CheckBoxDisableSplit.Visible = true;
                 }
-
-                TextBoxPassword.Enabled = false;
 
                 if (!CheckBoxDisableSplit.Checked)
                 {
@@ -1942,7 +2032,8 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             await Task.Run(() => EXECUTE_COMMAND(command));
-                            ADD_7Z_USAGE_COUNT();
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
                         }
 
                         else
@@ -1957,7 +2048,8 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             await Task.Run(() => EXECUTE_COMMAND(command));
-                            ADD_7Z_USAGE_COUNT();
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
                         }
 
                         else
@@ -1987,8 +2079,7 @@ namespace Auto7z_GUI
                         {
                             if (Directory.Exists($"{newFolderPath}"))
                             {
-                                DELETE_DIRECTORY_CONTENTS(newFolderPath);
-                                Directory.Delete(newFolderPath);
+                                DELETE_OLD_TAR_ZST(newFolderPath);
                             }
 
                             bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
@@ -2014,7 +2105,8 @@ namespace Auto7z_GUI
                                 }
                             }
 
-                            ADD_7Z_USAGE_COUNT();
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
                         }
 
                         else
@@ -2031,8 +2123,7 @@ namespace Auto7z_GUI
                         {
                             if (Directory.Exists($"{newFolderPath}"))
                             {
-                                DELETE_DIRECTORY_CONTENTS(newFolderPath);
-                                Directory.Delete(newFolderPath);
+                                DELETE_OLD_TAR_ZST(newFolderPath);
                             }
 
                             bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
@@ -2058,7 +2149,8 @@ namespace Auto7z_GUI
                                 }
                             }
 
-                            ADD_7Z_USAGE_COUNT();
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
                         }
 
                         else
@@ -2082,6 +2174,8 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             await Task.Run(() => EXECUTE_COMMAND(command));
+                            ADD_RAR_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
                         }
 
                         else
@@ -2110,12 +2204,13 @@ namespace Auto7z_GUI
 
         private void MAINFORM_FORM_CLOSING(object sender, FormClosingEventArgs e)
         {
-            if (autoSave == "false")
+            if (!CheckBoxAutoSave.Checked)
             {
+                UPDATE_CONFIG($"{xmlPath}", "AutoSave", "false");
                 SAVE_LOCATION();
             }
 
-            if (autoSave == "true")
+            else
             {
                 SAVE_CONFIG();
                 SAVE_LOCATION();
