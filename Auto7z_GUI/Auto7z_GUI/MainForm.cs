@@ -18,13 +18,14 @@ namespace Auto7z_GUI
         private Dictionary<string, Dictionary<string, string>> languageTexts;
 
         public static string currentLanguage;
+        public long sevenZUsageCount;
         public string xmlPath;
         public int locationX;
         public int locationY;
         public string partSize;
         public string format;
         public string password;
-        public string forbiddenTarSplit;
+        public string disableTarSplit;
         public string autoSave;
         public string zstd;
         public string filePath;
@@ -56,8 +57,11 @@ namespace Auto7z_GUI
             string workPath = GET_WORK_PATH(); // 获取程序路径
             string xml = @"config.xml";
             xmlPath = Path.Combine(workPath, xml);
+            CHECK_XML_LEGAL(xmlPath);
 
             currentLanguage = GET_CURRENT_LANGUAGE(xmlPath);
+
+            sevenZUsageCount = GET_7Z_USAGE_COUNT(xmlPath);
 
             InitializeLanguageTexts();
             UpdateLanguage();
@@ -78,19 +82,7 @@ namespace Auto7z_GUI
 
                     if (fileSize == -1)
                     {
-                        switch (currentLanguage)
-                        {
-                            case "zh-CN":
-                                MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                        }
-
+                        ERROR_EMPTY_PATH();
                         this.Close();
                         return;
                     }
@@ -102,19 +94,7 @@ namespace Auto7z_GUI
 
                     if (folderSize == -1)
                     {
-                        switch (currentLanguage)
-                        {
-                            case "zh-CN":
-                                MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                        }
-
+                        ERROR_EMPTY_PATH();
                         this.Close();
                         return;
                     }
@@ -166,7 +146,7 @@ namespace Auto7z_GUI
             partSize = GET_PARTSIZE(xmlPath);
             format = GET_FORMAT(xmlPath);
             password = GET_PASSWORD(xmlPath);
-            forbiddenTarSplit = GET_FORBIDDEN_TAR_SPLIT(xmlPath);
+            disableTarSplit = GET_DISABLE_TAR_SPLIT(xmlPath);
             autoSave = GET_AUTOSAVE(xmlPath);
             zstd = GET_ZSTD(xmlPath);
 
@@ -183,36 +163,16 @@ namespace Auto7z_GUI
                 {
                     if (!CHECK_SEVENZ_EXIST())
                     {
-                        switch (currentLanguage)
-                        {
-                            case "zh-CN":
-                                MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The 7z components (7z.exe 7z.dll) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                        }
-
+                        ERROR_SEVENZ_EXIST();
                         this.Close();
                         return;
                     }
 
                     else if (!CHECK_LANG_EXIST())
                     {
-                        switch (currentLanguage)
+                        if (sevenZUsageCount < 1)
                         {
-                            case "zh-CN":
-                                MessageBox.Show("程序工作路径下7z组件(Lang)不完整，可能导致7z本地化翻译出现问题。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("程式工作路徑下7z組件(Lang)不完整，可能導致7z本地化翻譯出現問題。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The 7z component (Lang) in the program working path is incomplete, which may result in issues with 7z localization translation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
+                            WARNING_LANG_EXIST();
                         }
 
                         string command = GENERATE_COMMAND();
@@ -220,24 +180,13 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             EXECUTE_COMMAND(command);
+                            ADD_7Z_USAGE_COUNT();
                             this.Close();
                         }
 
                         else
                         {
-                            switch (currentLanguage)
-                            {
-                                case "zh-CN":
-                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "zh-TW":
-                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "en-US":
-                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                            }
-
+                            ERROR_EMPTY_PATH();
                             this.Close();
                             return;
                         }
@@ -250,24 +199,13 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             EXECUTE_COMMAND(command);
+                            ADD_7Z_USAGE_COUNT();
                             this.Close();
                         }
 
                         else
                         {
-                            switch (currentLanguage)
-                            {
-                                case "zh-CN":
-                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "zh-TW":
-                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "en-US":
-                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                            }
-
+                            ERROR_EMPTY_PATH();
                             this.Close();
                             return;
                         }
@@ -278,44 +216,30 @@ namespace Auto7z_GUI
                 {
                     if (!CHECK_SEVENZ_EXIST())
                     {
-                        switch (currentLanguage)
-                        {
-                            case "zh-CN":
-                                MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The 7z components (7z.exe 7z.dll) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                        }
-
+                        ERROR_SEVENZ_EXIST();
                         this.Close();
                         return;
                     }
 
                     else if (!CHECK_LANG_EXIST())
                     {
-                        switch (currentLanguage)
+                        if (sevenZUsageCount < 1)
                         {
-                            case "zh-CN":
-                                MessageBox.Show("程序工作路径下7z组件(Lang)不完整，可能导致7z本地化翻译出现问题。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("程式工作路徑下7z組件(Lang)不完整，可能導致7z本地化翻譯出現問題。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The 7z component (Lang) in the program working path is incomplete, which may result in issues with 7z localization translation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
+                            WARNING_LANG_EXIST();
                         }
 
                         string command = GENERATE_COMMAND();
 
                         if (command != null)
                         {
+                            if (Directory.Exists($"{newFolderPath}"))
+                            {
+                                DELETE_DIRECTORY_CONTENTS(newFolderPath);
+                                Directory.Delete(newFolderPath);
+                            }
+
                             bool tarFinished = EXECUTE_COMMAND_BOOL(command);
-                            if (zstd == "true")
+                            if (CheckBoxZstd.Checked)
                             {
                                 while (tarFinished)
                                 {
@@ -337,24 +261,13 @@ namespace Auto7z_GUI
                                 }
                             }
 
+                            ADD_7Z_USAGE_COUNT();
                             this.Close();
                         }
 
                         else
                         {
-                            switch (currentLanguage)
-                            {
-                                case "zh-CN":
-                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "zh-TW":
-                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "en-US":
-                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                            }
-
+                            ERROR_EMPTY_PATH();
                             this.Close();
                             return;
                         }
@@ -366,8 +279,14 @@ namespace Auto7z_GUI
 
                         if (command != null)
                         {
+                            if (Directory.Exists($"{newFolderPath}"))
+                            {
+                                DELETE_DIRECTORY_CONTENTS(newFolderPath);
+                                Directory.Delete(newFolderPath);
+                            }
+
                             bool tarFinished = EXECUTE_COMMAND_BOOL(command);
-                            if (zstd == "true")
+                            if (CheckBoxZstd.Checked)
                             {
                                 while (tarFinished)
                                 {
@@ -389,24 +308,13 @@ namespace Auto7z_GUI
                                 }
                             }
 
+                            ADD_7Z_USAGE_COUNT();
                             this.Close();
                         }
 
                         else
                         {
-                            switch (currentLanguage)
-                            {
-                                case "zh-CN":
-                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "zh-TW":
-                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "en-US":
-                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                            }
-
+                            ERROR_EMPTY_PATH();
                             this.Close();
                             return;
                         }
@@ -417,19 +325,7 @@ namespace Auto7z_GUI
                 {
                     if (!CHECK_RAR_EXIST())
                     {
-                        switch (currentLanguage)
-                        {
-                            case "zh-CN":
-                                MessageBox.Show("程序工作路径下rar组件(7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX)不完整，无法启动rar处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("程式工作路徑下rar組件(7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX)不完整，無法啓動rar處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The rar components (7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX) in the program's working directory are incomplete and can not start the rar processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                        }
-
+                        ERROR_RAR_EXIST();
                         this.Close();
                         return;
                     }
@@ -446,19 +342,7 @@ namespace Auto7z_GUI
 
                         else
                         {
-                            switch (currentLanguage)
-                            {
-                                case "zh-CN":
-                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "zh-TW":
-                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "en-US":
-                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                            }
-
+                            ERROR_EMPTY_PATH();
                             this.Close();
                             return;
                         }
@@ -479,7 +363,7 @@ namespace Auto7z_GUI
                         { "LabelSize","分卷大小：" },
                         { "LabelFormat","生成格式：" },
                         { "LabelPassword","添加密码：" },
-                        { "CheckBoxNeedSplit","禁止分卷"},
+                        { "CheckBoxDisableSplit","禁用分卷"},
                         { "CheckBoxAutoSave","程序关闭时自动保存配置" },
                         { "ButtonConfig","保存配置" }
                     }
@@ -492,7 +376,7 @@ namespace Auto7z_GUI
                         { "LabelSize","分卷大小：" },
                         { "LabelFormat","生成格式：" },
                         { "LabelPassword","添加密碼：" },
-                        { "CheckBoxNeedSplit","禁止分卷"},
+                        { "CheckBoxDisableSplit","禁用分卷"},
                         { "CheckBoxAutoSave","程式關閉時自動保存配置" },
                         { "ButtonConfig","保存配置" }
                     }
@@ -505,7 +389,7 @@ namespace Auto7z_GUI
                         { "LabelSize","Part Size：" },
                         { "LabelFormat","Generate Format：" },
                         { "LabelPassword","Add Password：" },
-                        { "CheckBoxNeedSplit","Forbidden split"},
+                        { "CheckBoxDisableSplit","Disable split"},
                         { "CheckBoxAutoSave","Auto save config while exit" },
                         { "ButtonConfig","Save Config" }
                     }
@@ -521,7 +405,7 @@ namespace Auto7z_GUI
             LabelSize.Text = languageTexts[currentLanguage]["LabelSize"];
             LabelFormat.Text = languageTexts[currentLanguage]["LabelFormat"];
             LabelPassword.Text = languageTexts[currentLanguage]["LabelPassword"];
-            CheckBoxForbiddenSplit.Text = languageTexts[currentLanguage]["CheckBoxNeedSplit"];
+            CheckBoxDisableSplit.Text = languageTexts[currentLanguage]["CheckBoxDisableSplit"];
             CheckBoxAutoSave.Text = languageTexts[currentLanguage]["CheckBoxAutoSave"];
             ButtonConfig.Text = languageTexts[currentLanguage]["ButtonConfig"];
 
@@ -556,19 +440,7 @@ namespace Auto7z_GUI
 
             catch (Exception ex)
             {
-                switch (currentLanguage)
-                {
-                    case "zh-CN":
-                        MessageBox.Show($"出现错误: {ex.Message}。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        break;
-                    case "zh-TW":
-                        MessageBox.Show($"出現錯誤: {ex.Message}。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        break;
-                    case "en-US":
-                        MessageBox.Show($"An error occurred: {ex.Message}.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        break;
-                }
-
+                ERROR_EXCEPTION_MESSAGE(ex);
                 return false; // 发生异常时返回false
             }
 
@@ -637,7 +509,7 @@ namespace Auto7z_GUI
             {
                 string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
 
-                if (size > targetSize && targetSize > 0 && zstd == "false")
+                if (size > targetSize && targetSize > 0 && !CheckBoxZstd.Checked)
                 {
                     command += $" -v{partSize}m";
                 }
@@ -662,19 +534,7 @@ namespace Auto7z_GUI
 
                 catch (Exception)
                 {
-                    switch (currentLanguage)
-                    {
-                        case "zh-CN":
-                            MessageBox.Show("创建目标文件夹时出错。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                        case "zh-TW":
-                            MessageBox.Show("創建目標文件夾時出錯。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                        case "en-US":
-                            MessageBox.Show("The error occurred while creating the target folder.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                    }
-
+                    ERROR_CREATE_FOLDER_FAILED();
                     return false;
                 }
             }
@@ -696,15 +556,29 @@ namespace Auto7z_GUI
             bool isFile = File.Exists(filePath);
             long size = isFile ? fileSize : folderSize; // 确定使用文件大小还是文件夹大小
 
-            string command = $"@\"{sevenZPath}\" a \"{newFolderPath}\\{fileName}.tar.zst\" \"{newFolderPath}\\{fileName}.tar\"";
+            string command = $"@\"{sevenZPath}\" a -tzstd \"{newFolderPath}\\{fileName}.tar.zst\" \"{newFolderPath}\\{fileName}.tar\"";
 
             // 添加分卷选项
-            if (size > targetSize && targetSize > 0 && forbiddenTarSplit == "false")
+            if (size > targetSize && targetSize > 0 && !CheckBoxDisableSplit.Checked)
             {
                 command += $" -v{partSize}m";
             }
 
             return command;
+        }
+
+        private void DELETE_DIRECTORY_CONTENTS(string dirPath)
+        {
+            foreach (string file in Directory.GetFiles(dirPath))
+            {
+                File.Delete(file); // 删除文件
+            }
+
+            foreach (string subDir in Directory.GetDirectories(dirPath))
+            {
+                DELETE_DIRECTORY_CONTENTS(subDir); // 递归调用删除子目录
+                Directory.Delete(subDir); // 删除子目录
+            }
         }
 
         private long GET_FILE_SIZE(string filePath)
@@ -760,6 +634,27 @@ namespace Auto7z_GUI
             return Path.GetDirectoryName(assemblyPath);
         }
 
+        private void CHECK_XML_LEGAL(string configFilePath)
+        {
+            FileInfo configFile = new FileInfo(configFilePath);
+
+            if (configFile.Exists && (configFile.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden)
+            {
+                configFile.Attributes = FileAttributes.Normal;
+            }
+
+            if (configFile.Exists && (configFile.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+            {
+                configFile.Attributes = FileAttributes.Normal;
+            }
+
+            if (!configFile.Exists)
+            {
+                CREATE_DEFAULT_CONFIG(configFilePath);
+            }
+        }
+
+
         private bool CHECK_SEVENZ_EXIST()
         {
             return File.Exists(sevenZPath) && File.Exists(sevenZDllPath);
@@ -788,19 +683,7 @@ namespace Auto7z_GUI
 
                 catch (Exception ex)
                 {
-                    switch (currentLanguage)
-                    {
-                        case "zh-CN":
-                            MessageBox.Show($"出现错误: {ex.Message}。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                        case "zh-TW":
-                            MessageBox.Show($"出現錯誤: {ex.Message}。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                        case "en-US":
-                            MessageBox.Show($"An error occurred: {ex.Message}.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            break;
-                    }
-
+                    ERROR_EXCEPTION_MESSAGE(ex);
                     this.Close();
                 }
             }
@@ -820,54 +703,59 @@ namespace Auto7z_GUI
                 // 其他语言...
             };
 
-            if (currentLanguage != null && supportedLanguages.Contains(currentCulture.Name))
+            if (supportedLanguages.Contains(currentCulture.Name))
             {
-                // 创建默认的 XML 结构
-                XElement defaultConfig = new XElement("Configuration",
-                    new XElement("Language", $"{currentLanguage}"),
-                    new XElement("LocationX", $"{newLocationX}"),
-                    new XElement("LocationY", $"{newLocationY}"),
-                    new XElement("PartSize", "2048"),
-                    new XElement("Format", "7z"),
-                    new XElement("Password", ""),
-                    new XElement("ForbiddenTarSplit", "false"),
-                    new XElement("AutoSave", "true"),
-                    new XElement("Zstd", "true")
-                );
+                if (currentLanguage != null)
+                {
+                    // 创建默认的 XML 结构
+                    XElement defaultConfig = new XElement("Configuration",
+                        new XElement("Language", $"{currentLanguage}"),
+                        new XElement("SevenZUsageCount", "0"),
+                        new XElement("LocationX", $"{newLocationX}"),
+                        new XElement("LocationY", $"{newLocationY}"),
+                        new XElement("PartSize", "2048"),
+                        new XElement("Format", "7z"),
+                        new XElement("Password", ""),
+                        new XElement("DisableTarSplit", "false"),
+                        new XElement("AutoSave", "true"),
+                        new XElement("Zstd", "true")
+                    );
 
-                defaultConfig.Save(configFilePath);
+                    defaultConfig.Save(configFilePath);
+                }
+
+                else
+                {
+                    // 创建默认的 XML 结构
+                    XElement defaultConfig = new XElement("Configuration",
+                        new XElement("Language", $"{currentCulture.Name}"),
+                        new XElement("SevenZUsageCount", "0"),
+                        new XElement("LocationX", $"{newLocationX}"),
+                        new XElement("LocationY", $"{newLocationY}"),
+                        new XElement("PartSize", "2048"),
+                        new XElement("Format", "7z"),
+                        new XElement("Password", ""),
+                        new XElement("DisableTarSplit", "false"),
+                        new XElement("AutoSave", "true"),
+                        new XElement("Zstd", "true")
+                    );
+
+                    defaultConfig.Save(configFilePath);
+                }
             }
 
-            // 检查当前语言是否在词典中
-            if (currentLanguage == null && supportedLanguages.Contains(currentCulture.Name))
-            {
-                // 创建默认的 XML 结构
-                XElement defaultConfig = new XElement("Configuration",
-                    new XElement("Language", $"{currentCulture.Name}"),
-                    new XElement("LocationX", $"{newLocationX}"),
-                    new XElement("LocationY", $"{newLocationY}"),
-                    new XElement("PartSize", "2048"),
-                    new XElement("Format", "7z"),
-                    new XElement("Password", ""),
-                    new XElement("ForbiddenTarSplit", "false"),
-                    new XElement("AutoSave", "true"),
-                    new XElement("Zstd", "true")
-                );
-
-                defaultConfig.Save(configFilePath);
-            }
-
-            if (!supportedLanguages.Contains(currentCulture.Name))
+            else
             {
                 // 创建默认的 XML 结构
                 XElement defaultConfig = new XElement("Configuration",
                     new XElement("Language", "en-US"),
+                    new XElement("SevenZUsageCount", "0"),
                     new XElement("LocationX", $"{newLocationX}"),
                     new XElement("LocationY", $"{newLocationY}"),
                     new XElement("PartSize", "2048"),
                     new XElement("Format", "7z"),
                     new XElement("Password", ""),
-                    new XElement("ForbiddenTarSplit", "fasle"),
+                    new XElement("DisableTarSplit", "false"),
                     new XElement("AutoSave", "true"),
                     new XElement("Zstd", "true")
                 );
@@ -1013,6 +901,64 @@ namespace Auto7z_GUI
 
             // 返回获取到的值
             return language;
+        }
+
+        private long GET_7Z_USAGE_COUNT(string configFilePath)
+        {
+            if (!File.Exists(configFilePath))
+            {
+                CREATE_DEFAULT_CONFIG(configFilePath);
+            }
+
+            XDocument xdoc;
+
+            try
+            {
+                // 加载 XML 文档
+                xdoc = XDocument.Load(configFilePath);
+            }
+
+            catch (XmlException)
+            {
+                // 如果加载失败，创建新的默认配置文件并返回默认值
+                CREATE_DEFAULT_CONFIG(configFilePath);
+
+                return 0;
+            }
+
+            var sevenZUsageCountNode = xdoc.Descendants("SevenZUsageCount").FirstOrDefault();
+
+            if (sevenZUsageCountNode == null)
+            {
+
+                XElement newNode = new XElement("SevenZUsageCount", "0");
+
+                xdoc.Root.Add(newNode);
+
+                xdoc.Save(configFilePath);
+
+                return 0;
+            }
+
+            var sevenZUsageCount = sevenZUsageCountNode.Value;
+            long sevenZUsageCountToLong;
+
+            if (string.IsNullOrEmpty(sevenZUsageCount))
+            {
+                return 0;
+            }
+
+            if (!long.TryParse(sevenZUsageCount, out sevenZUsageCountToLong))
+            {
+                return 0;
+            }
+
+            if (sevenZUsageCountToLong < 0)
+            {
+                return 0;
+            }
+
+            return sevenZUsageCountToLong;
         }
 
         private int GET_LOCATION_X(string configFilePath)
@@ -1353,7 +1299,7 @@ namespace Auto7z_GUI
             return autoSave;
         }
 
-        private string GET_FORBIDDEN_TAR_SPLIT(string configFilePath)
+        private string GET_DISABLE_TAR_SPLIT(string configFilePath)
         {
             if (!File.Exists(configFilePath))
             {
@@ -1376,7 +1322,7 @@ namespace Auto7z_GUI
                 return "false";
             }
 
-            var forbiddenTarSplitNode = xdoc.Descendants("ForbiddenTarSplit").FirstOrDefault();
+            var disableTarSplitNode = xdoc.Descendants("DisableTarSplit").FirstOrDefault();
 
             var supportedBool = new HashSet<string>
             {
@@ -1384,9 +1330,9 @@ namespace Auto7z_GUI
                 "false"
             };
 
-            if (forbiddenTarSplitNode == null)
+            if (disableTarSplitNode == null)
             {
-                XElement newNode = new XElement("ForbiddenTarSplit", "false");
+                XElement newNode = new XElement("DisableTarSplit", "false");
 
                 xdoc.Root.Add(newNode);
 
@@ -1395,19 +1341,19 @@ namespace Auto7z_GUI
                 return "false";
             }
 
-            var forbiddenTarSplit = forbiddenTarSplitNode.Value;
+            var disableTarSplit = disableTarSplitNode.Value;
 
-            if (string.IsNullOrEmpty(forbiddenTarSplit))
+            if (string.IsNullOrEmpty(disableTarSplit))
             {
                 return "false";
             }
 
-            if (!supportedBool.Contains(forbiddenTarSplit))
+            if (!supportedBool.Contains(disableTarSplit))
             {
                 return "false";
             }
 
-            return forbiddenTarSplit;
+            return disableTarSplit;
         }
 
         private string GET_ZSTD(string configFilePath)
@@ -1534,24 +1480,24 @@ namespace Auto7z_GUI
         private void DEFAULT_FORBIDDEN_TAR_SPLIT()
         {
             // 定义后台运行的默认显示状态
-            if (forbiddenTarSplit == "true")
+            if (disableTarSplit == "true")
             {
-                CheckBoxForbiddenSplit.Checked = true;
+                CheckBoxDisableSplit.Checked = true;
             }
 
-            if (forbiddenTarSplit == "false")
+            if (disableTarSplit == "false")
             {
-                CheckBoxForbiddenSplit.Checked = false;
+                CheckBoxDisableSplit.Checked = false;
             }
 
             if (format == "tar")
             {
-                CheckBoxForbiddenSplit.Visible = true;
+                CheckBoxDisableSplit.Visible = true;
             }
 
             else
             {
-                CheckBoxForbiddenSplit.Visible = false;
+                CheckBoxDisableSplit.Visible = false;
             }
         }
 
@@ -1574,9 +1520,9 @@ namespace Auto7z_GUI
 
                 if(CheckBoxZstd.Checked)
                 {
-                    CheckBoxForbiddenSplit.Visible = true;
+                    CheckBoxDisableSplit.Visible = true;
 
-                    if (!CheckBoxForbiddenSplit.Checked)
+                    if (!CheckBoxDisableSplit.Checked)
                     {
                         TextBoxSize.Enabled = true;
                     }
@@ -1589,7 +1535,7 @@ namespace Auto7z_GUI
 
                 else
                 {
-                    CheckBoxForbiddenSplit.Visible = false;
+                    CheckBoxDisableSplit.Visible = false;
                 }
 
             }
@@ -1603,15 +1549,31 @@ namespace Auto7z_GUI
         private void SAVE_CONFIG()
         {
             UPDATE_CONFIG($"{xmlPath}", "Language", $"{currentLanguage}");
+            UPDATE_CONFIG($"{xmlPath}", "SevenZUsageCount", $"{sevenZUsageCount}");
             UPDATE_CONFIG($"{xmlPath}", "PartSize", $"{partSize}");
             UPDATE_CONFIG($"{xmlPath}", "Format", $"{format}");
             UPDATE_CONFIG($"{xmlPath}", "Password", $"{password}");
-            UPDATE_CONFIG($"{xmlPath}", "ForbiddenTarSplit", $"{forbiddenTarSplit}");
+            UPDATE_CONFIG($"{xmlPath}", "DisableTarSplit", $"{disableTarSplit}");
             UPDATE_CONFIG($"{xmlPath}", "AutoSave", $"{autoSave}");
             UPDATE_CONFIG($"{xmlPath}", "Zstd", $"{zstd}");
         }
 
-        private void BUTTON_CONFIG_CLICK(object sender, EventArgs e)
+        private void SAVE_LOCATION()
+        {
+            locationX = this.Location.X;
+            locationY = this.Location.Y;
+
+            UPDATE_CONFIG($"{xmlPath}", "LocationX", $"{locationX}");
+            UPDATE_CONFIG($"{xmlPath}", "LocationY", $"{locationY}");
+        }
+
+        private void ADD_7Z_USAGE_COUNT()
+        {
+            sevenZUsageCount++;
+            UPDATE_CONFIG($"{xmlPath}", "SevenZUsageCount", $"{sevenZUsageCount}");
+        }
+
+        private void NOTICE_CONFIG_SAVED()
         {
             switch (currentLanguage)
             {
@@ -1625,7 +1587,107 @@ namespace Auto7z_GUI
                     MessageBox.Show("Configuration Saved.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     break;
             }
-            
+        }
+
+        private void ERROR_EMPTY_PATH()
+        {
+            switch (currentLanguage)
+            {
+                case "zh-CN":
+                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "zh-TW":
+                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "en-US":
+                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+            }
+        }
+
+        private void ERROR_SEVENZ_EXIST()
+        {
+            switch (currentLanguage)
+            {
+                case "zh-CN":
+                    MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "zh-TW":
+                    MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "en-US":
+                    MessageBox.Show("The 7z components (7z.exe 7z.dll) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+            }
+        }
+
+        private void WARNING_LANG_EXIST()
+        {
+            switch (currentLanguage)
+            {
+                case "zh-CN":
+                    MessageBox.Show("程序工作路径下7z组件(Lang)不完整，可能导致7z本地化翻译出现问题。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    break;
+                case "zh-TW":
+                    MessageBox.Show("程式工作路徑下7z組件(Lang)不完整，可能導致7z本地化翻譯出現問題。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    break;
+                case "en-US":
+                    MessageBox.Show("The 7z component (Lang) in the program working path is incomplete, which may result in issues with 7z localization translation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    break;
+            }
+        }
+
+        private void ERROR_RAR_EXIST()
+        {
+            switch (currentLanguage)
+            {
+                case "zh-CN":
+                    MessageBox.Show("程序工作路径下rar组件(7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX)不完整，无法启动rar处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "zh-TW":
+                    MessageBox.Show("程式工作路徑下rar組件(7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX)不完整，無法啓動rar處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "en-US":
+                    MessageBox.Show("The rar components (7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX) in the program's working directory are incomplete and can not start the rar processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+            }
+        }
+
+        private void ERROR_CREATE_FOLDER_FAILED()
+        {
+            switch (currentLanguage)
+            {
+                case "zh-CN":
+                    MessageBox.Show("创建目标文件夹时出错。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "zh-TW":
+                    MessageBox.Show("創建目標文件夾時出錯。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "en-US":
+                    MessageBox.Show("The error occurred while creating the target folder.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+            }
+        }
+
+        private void ERROR_EXCEPTION_MESSAGE(Exception error)
+        {
+            switch (currentLanguage)
+            {
+                case "zh-CN":
+                    MessageBox.Show($"出现错误: {error.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "zh-TW":
+                    MessageBox.Show($"出現錯誤: {error.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "en-US":
+                    MessageBox.Show($"An error occurred: {error.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+            }
+        }
+
+        private void BUTTON_CONFIG_CLICK(object sender, EventArgs e)
+        {
+            NOTICE_CONFIG_SAVED();
             SAVE_CONFIG();
             SAVE_LOCATION();
         }
@@ -1661,7 +1723,7 @@ namespace Auto7z_GUI
             }
 
             CheckBoxAutoSave.Location = new Point(25, MainPanel.Height - CheckBoxAutoSave.Height - 20);
-            CheckBoxForbiddenSplit.Location = new Point(25, MainPanel.Height - CheckBoxForbiddenSplit.Height - 60);
+            CheckBoxDisableSplit.Location = new Point(25, MainPanel.Height - CheckBoxDisableSplit.Height - 60);
             ButtonConfig.Location = new Point(MainPanel.Width - ButtonConfig.Width - 10, MainPanel.Height - ButtonConfig.Height - 10);
         }
 
@@ -1687,10 +1749,10 @@ namespace Auto7z_GUI
                 zstd = "true";
                 if (format == "tar")
                 {
-                    CheckBoxForbiddenSplit.Visible = true;
+                    CheckBoxDisableSplit.Visible = true;
                 }
                 
-                if(CheckBoxForbiddenSplit.Checked)
+                if(CheckBoxDisableSplit.Checked)
                 {
                     TextBoxSize.Enabled = false;
                 }
@@ -1699,23 +1761,23 @@ namespace Auto7z_GUI
             else
             {
                 zstd = "false";
-                CheckBoxForbiddenSplit.Visible = false;
+                CheckBoxDisableSplit.Visible = false;
                 TextBoxSize.Enabled = true;
             }
         }
 
         private void CHECKBOX_TARSPLIT_CHECKED_CHANGED(object sender,EventArgs e)
         {
-            bool isForbidden = CheckBoxForbiddenSplit.Checked;
+            bool isForbidden = CheckBoxDisableSplit.Checked;
             if (isForbidden)
             {
-                forbiddenTarSplit = "true";
+                disableTarSplit = "true";
                 TextBoxSize.Enabled = false;
             }
 
             else
             {
-                forbiddenTarSplit = "false";
+                disableTarSplit = "false";
                 TextBoxSize.Enabled = true;
             }
         }
@@ -1728,12 +1790,12 @@ namespace Auto7z_GUI
 
                 if(CheckBoxZstd.Checked)
                 {
-                    CheckBoxForbiddenSplit.Visible = true;
+                    CheckBoxDisableSplit.Visible = true;
                 }
 
                 TextBoxPassword.Enabled = false;
 
-                if (!CheckBoxForbiddenSplit.Checked)
+                if (!CheckBoxDisableSplit.Checked)
                 {
                     TextBoxSize.Enabled = true;
                 }
@@ -1747,7 +1809,7 @@ namespace Auto7z_GUI
             else
             {
                 CheckBoxZstd.Visible = false;
-                CheckBoxForbiddenSplit.Visible = false;
+                CheckBoxDisableSplit.Visible = false;
                 TextBoxPassword.Enabled = true;
                 TextBoxSize.Enabled = true;
             }
@@ -1843,19 +1905,7 @@ namespace Auto7z_GUI
 
                     if (fileSize == -1)
                     {
-                        switch (currentLanguage)
-                        {
-                            case "zh-CN":
-                                MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                        }
-
+                        ERROR_EMPTY_PATH();
                         return;
                     }
                 }
@@ -1866,19 +1916,7 @@ namespace Auto7z_GUI
 
                     if (folderSize == -1)
                     {
-                        switch (currentLanguage)
-                        {
-                            case "zh-CN":
-                                MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                        }
-
+                        ERROR_EMPTY_PATH();
                         return;
                     }
                 }
@@ -1890,55 +1928,26 @@ namespace Auto7z_GUI
                 {
                     if (!CHECK_SEVENZ_EXIST())
                     {
-                        switch (currentLanguage)
-                        {
-                            case "zh-CN":
-                                MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll Lang)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll Lang)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The 7z components (7z.exe 7z.dll Lang) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                        }
+                        ERROR_SEVENZ_EXIST();
                     }
 
                     else if (!CHECK_LANG_EXIST())
                     {
-                        switch (currentLanguage)
+                        if (sevenZUsageCount < 1)
                         {
-                            case "zh-CN":
-                                MessageBox.Show("程序工作路径下7z组件(Lang)不完整，可能导致7z本地化翻译出现问题。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("程式工作路徑下7z組件(Lang)不完整，可能導致7z本地化翻譯出現問題。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The 7z component (Lang) in the program working path is incomplete, which may result in issues with 7z localization translation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
+                            WARNING_LANG_EXIST();
                         }
 
                         string command = GENERATE_COMMAND();
                         if (command != null)
                         {
                             await Task.Run(() => EXECUTE_COMMAND(command));
+                            ADD_7Z_USAGE_COUNT();
                         }
 
                         else
                         {
-                            switch (currentLanguage)
-                            {
-                                case "zh-CN":
-                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "zh-TW":
-                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "en-US":
-                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                            }
+                            ERROR_EMPTY_PATH();
                         }
                     }
 
@@ -1948,22 +1957,12 @@ namespace Auto7z_GUI
                         if (command != null)
                         {
                             await Task.Run(() => EXECUTE_COMMAND(command));
+                            ADD_7Z_USAGE_COUNT();
                         }
 
                         else
                         {
-                            switch (currentLanguage)
-                            {
-                                case "zh-CN":
-                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "zh-TW":
-                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "en-US":
-                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                            }
+                            ERROR_EMPTY_PATH();
                         }
                     }
                 }
@@ -1972,41 +1971,28 @@ namespace Auto7z_GUI
                 {
                     if (!CHECK_SEVENZ_EXIST())
                     {
-                        switch (currentLanguage)
-                        {
-                            case "zh-CN":
-                                MessageBox.Show("程序工作路径下7z组件(7z.exe 7z.dll)不完整，无法启动7z处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("程式工作路徑下7z組件(7z.exe 7z.dll)不完整，無法啓動7z處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The 7z components (7z.exe 7z.dll) in the program's working directory are incomplete and can not start the 7z processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                        }
+                        ERROR_SEVENZ_EXIST();
                     }
 
                     else if (!CHECK_LANG_EXIST())
                     {
-                        switch (currentLanguage)
+                        if (sevenZUsageCount < 1)
                         {
-                            case "zh-CN":
-                                MessageBox.Show("程序工作路径下7z组件(Lang)不完整，可能导致7z本地化翻译出现问题。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("程式工作路徑下7z組件(Lang)不完整，可能導致7z本地化翻譯出現問題。", "警告", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The 7z component (Lang) in the program working path is incomplete, which may result in issues with 7z localization translation.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                                break;
+                            WARNING_LANG_EXIST();
                         }
 
                         string command = GENERATE_COMMAND();
 
                         if (command != null)
                         {
+                            if (Directory.Exists($"{newFolderPath}"))
+                            {
+                                DELETE_DIRECTORY_CONTENTS(newFolderPath);
+                                Directory.Delete(newFolderPath);
+                            }
+
                             bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-                            if (zstd == "true")
+                            if (CheckBoxZstd.Checked)
                             {
                                 while (tarFinished)
                                 {
@@ -2027,22 +2013,13 @@ namespace Auto7z_GUI
                                     break;
                                 }
                             }
+
+                            ADD_7Z_USAGE_COUNT();
                         }
 
                         else
                         {
-                            switch (currentLanguage)
-                            {
-                                case "zh-CN":
-                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "zh-TW":
-                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "en-US":
-                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                            }
+                            ERROR_EMPTY_PATH();
                         }
                     }
 
@@ -2052,8 +2029,14 @@ namespace Auto7z_GUI
 
                         if (command != null)
                         {
+                            if (Directory.Exists($"{newFolderPath}"))
+                            {
+                                DELETE_DIRECTORY_CONTENTS(newFolderPath);
+                                Directory.Delete(newFolderPath);
+                            }
+
                             bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-                            if (zstd == "true")
+                            if (CheckBoxZstd.Checked)
                             {
                                 while (tarFinished)
                                 {
@@ -2074,22 +2057,13 @@ namespace Auto7z_GUI
                                     break;
                                 }
                             }
+
+                            ADD_7Z_USAGE_COUNT();
                         }
 
                         else
                         {
-                            switch (currentLanguage)
-                            {
-                                case "zh-CN":
-                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "zh-TW":
-                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "en-US":
-                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                            }
+                            ERROR_EMPTY_PATH();
                         }
                     }
                 }
@@ -2098,18 +2072,7 @@ namespace Auto7z_GUI
                 {
                     if (!CHECK_RAR_EXIST())
                     {
-                        switch (currentLanguage)
-                        {
-                            case "zh-CN":
-                                MessageBox.Show("程序工作路径下rar组件(7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX)不完整，无法启动rar处理流程。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "zh-TW":
-                                MessageBox.Show("程式工作路徑下rar組件(7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX)不完整，無法啓動rar處理流程。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                            case "en-US":
-                                MessageBox.Show("The rar components (7zxa.dll Default.SFX Default64.SFX Rar.exe rarreg.key WinCon.SFX WinCon64.SFX WinRAR.exe Zip.SFX Zip64.SFX) in the program's working directory are incomplete and can not start the rar processing flow.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                break;
-                        }
+                        ERROR_RAR_EXIST();
                     }
 
                     else
@@ -2123,18 +2086,7 @@ namespace Auto7z_GUI
 
                         else
                         {
-                            switch (currentLanguage)
-                            {
-                                case "zh-CN":
-                                    MessageBox.Show("传入路径为空路径。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "zh-TW":
-                                    MessageBox.Show("傳入路徑為空路徑。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                                case "en-US":
-                                    MessageBox.Show("The input path is an empty path.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                    break;
-                            }
+                            ERROR_EMPTY_PATH();
                         }
                     }
                 }
@@ -2168,15 +2120,6 @@ namespace Auto7z_GUI
                 SAVE_CONFIG();
                 SAVE_LOCATION();
             }
-        }
-
-        private void SAVE_LOCATION()
-        {
-            locationX = this.Location.X;
-            locationY = this.Location.Y;
-
-            UPDATE_CONFIG($"{xmlPath}", "LocationX", $"{locationX}");
-            UPDATE_CONFIG($"{xmlPath}", "LocationY", $"{locationY}");
         }
     }
 }

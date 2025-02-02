@@ -31,7 +31,7 @@ namespace Auto7z_GUI
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.MainPanel = new System.Windows.Forms.Panel();
-            this.CheckBoxForbiddenSplit = new System.Windows.Forms.CheckBox();
+            this.CheckBoxDisableSplit = new System.Windows.Forms.CheckBox();
             this.CheckBoxZstd = new System.Windows.Forms.CheckBox();
             this.CheckBoxAutoSave = new System.Windows.Forms.CheckBox();
             this.ComboBoxFormat = new System.Windows.Forms.ComboBox();
@@ -56,7 +56,7 @@ namespace Auto7z_GUI
             // 
             // MainPanel
             // 
-            this.MainPanel.Controls.Add(this.CheckBoxForbiddenSplit);
+            this.MainPanel.Controls.Add(this.CheckBoxDisableSplit);
             this.MainPanel.Controls.Add(this.CheckBoxZstd);
             this.MainPanel.Controls.Add(this.CheckBoxAutoSave);
             this.MainPanel.Controls.Add(this.ComboBoxFormat);
@@ -74,16 +74,16 @@ namespace Auto7z_GUI
             this.MainPanel.Size = new System.Drawing.Size(478, 444);
             this.MainPanel.TabIndex = 0;
             // 
-            // CheckBoxForbiddenSplit
+            // CheckBoxDisableSplit
             // 
-            this.CheckBoxForbiddenSplit.AutoSize = true;
-            this.CheckBoxForbiddenSplit.Location = new System.Drawing.Point(12, 370);
-            this.CheckBoxForbiddenSplit.Name = "CheckBoxForbiddenSplit";
-            this.CheckBoxForbiddenSplit.Size = new System.Drawing.Size(108, 28);
-            this.CheckBoxForbiddenSplit.TabIndex = 11;
-            this.CheckBoxForbiddenSplit.Text = "禁用分卷";
-            this.CheckBoxForbiddenSplit.UseVisualStyleBackColor = true;
-            this.CheckBoxForbiddenSplit.CheckedChanged += new System.EventHandler(this.CHECKBOX_TARSPLIT_CHECKED_CHANGED);
+            this.CheckBoxDisableSplit.AutoSize = true;
+            this.CheckBoxDisableSplit.Location = new System.Drawing.Point(12, 370);
+            this.CheckBoxDisableSplit.Name = "CheckBoxDisableSplit";
+            this.CheckBoxDisableSplit.Size = new System.Drawing.Size(108, 28);
+            this.CheckBoxDisableSplit.TabIndex = 11;
+            this.CheckBoxDisableSplit.Text = "禁用分卷";
+            this.CheckBoxDisableSplit.UseVisualStyleBackColor = true;
+            this.CheckBoxDisableSplit.CheckedChanged += new System.EventHandler(this.CHECKBOX_TARSPLIT_CHECKED_CHANGED);
             // 
             // CheckBoxZstd
             // 
@@ -190,7 +190,7 @@ namespace Auto7z_GUI
             this.AboutMenu});
             this.MenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MenuStrip.Name = "MenuStrip";
-            this.MenuStrip.Size = new System.Drawing.Size(478, 36);
+            this.MenuStrip.Size = new System.Drawing.Size(478, 32);
             this.MenuStrip.TabIndex = 2;
             this.MenuStrip.Text = "menuStrip1";
             // 
@@ -199,7 +199,7 @@ namespace Auto7z_GUI
             this.LanguageMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.LanguageMenuSelect});
             this.LanguageMenu.Name = "LanguageMenu";
-            this.LanguageMenu.Size = new System.Drawing.Size(62, 32);
+            this.LanguageMenu.Size = new System.Drawing.Size(62, 28);
             this.LanguageMenu.Text = "语言";
             // 
             // LanguageMenuSelect
@@ -238,7 +238,7 @@ namespace Auto7z_GUI
             this.AboutMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.AboutMenuAbout});
             this.AboutMenu.Name = "AboutMenu";
-            this.AboutMenu.Size = new System.Drawing.Size(62, 32);
+            this.AboutMenu.Size = new System.Drawing.Size(62, 28);
             this.AboutMenu.Text = "关于";
             // 
             // AboutMenuAbout
@@ -294,7 +294,7 @@ namespace Auto7z_GUI
         private System.Windows.Forms.ToolStripMenuItem LanguageMenuSelectenUS;
         private System.Windows.Forms.CheckBox CheckBoxAutoSave;
         private System.Windows.Forms.CheckBox CheckBoxZstd;
-        private System.Windows.Forms.CheckBox CheckBoxForbiddenSplit;
+        private System.Windows.Forms.CheckBox CheckBoxDisableSplit;
     }
 }
 
