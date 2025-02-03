@@ -71,7 +71,7 @@ namespace Auto7z_GUI
             this.MainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainPanel.Location = new System.Drawing.Point(0, 0);
             this.MainPanel.Name = "MainPanel";
-            this.MainPanel.Size = new System.Drawing.Size(484, 461);
+            this.MainPanel.Size = new System.Drawing.Size(478, 444);
             this.MainPanel.TabIndex = 0;
             // 
             // CheckBoxDisableSplit
@@ -79,7 +79,7 @@ namespace Auto7z_GUI
             this.CheckBoxDisableSplit.AutoSize = true;
             this.CheckBoxDisableSplit.Location = new System.Drawing.Point(12, 370);
             this.CheckBoxDisableSplit.Name = "CheckBoxDisableSplit";
-            this.CheckBoxDisableSplit.Size = new System.Drawing.Size(75, 21);
+            this.CheckBoxDisableSplit.Size = new System.Drawing.Size(108, 28);
             this.CheckBoxDisableSplit.TabIndex = 11;
             this.CheckBoxDisableSplit.Text = "禁用分卷";
             this.CheckBoxDisableSplit.UseVisualStyleBackColor = true;
@@ -90,7 +90,7 @@ namespace Auto7z_GUI
             this.CheckBoxZstd.AutoSize = true;
             this.CheckBoxZstd.Location = new System.Drawing.Point(316, 207);
             this.CheckBoxZstd.Name = "CheckBoxZstd";
-            this.CheckBoxZstd.Size = new System.Drawing.Size(51, 21);
+            this.CheckBoxZstd.Size = new System.Drawing.Size(72, 28);
             this.CheckBoxZstd.TabIndex = 10;
             this.CheckBoxZstd.Text = "zstd";
             this.CheckBoxZstd.UseVisualStyleBackColor = true;
@@ -101,7 +101,7 @@ namespace Auto7z_GUI
             this.CheckBoxAutoSave.AutoSize = true;
             this.CheckBoxAutoSave.Location = new System.Drawing.Point(12, 404);
             this.CheckBoxAutoSave.Name = "CheckBoxAutoSave";
-            this.CheckBoxAutoSave.Size = new System.Drawing.Size(159, 21);
+            this.CheckBoxAutoSave.Size = new System.Drawing.Size(234, 28);
             this.CheckBoxAutoSave.TabIndex = 9;
             this.CheckBoxAutoSave.Text = "程序关闭时自动保存配置";
             this.CheckBoxAutoSave.UseVisualStyleBackColor = true;
@@ -113,7 +113,7 @@ namespace Auto7z_GUI
             this.ComboBoxFormat.FormattingEnabled = true;
             this.ComboBoxFormat.Location = new System.Drawing.Point(202, 204);
             this.ComboBoxFormat.Name = "ComboBoxFormat";
-            this.ComboBoxFormat.Size = new System.Drawing.Size(104, 25);
+            this.ComboBoxFormat.Size = new System.Drawing.Size(104, 32);
             this.ComboBoxFormat.TabIndex = 8;
             this.ComboBoxFormat.SelectedIndexChanged += new System.EventHandler(this.COMBOBOX_FORMAT_SELECTED_INDEX_CHANGED);
             // 
@@ -121,7 +121,7 @@ namespace Auto7z_GUI
             // 
             this.TextBoxPassword.Location = new System.Drawing.Point(202, 258);
             this.TextBoxPassword.Name = "TextBoxPassword";
-            this.TextBoxPassword.Size = new System.Drawing.Size(145, 23);
+            this.TextBoxPassword.Size = new System.Drawing.Size(145, 31);
             this.TextBoxPassword.TabIndex = 7;
             this.TextBoxPassword.TextChanged += new System.EventHandler(this.TEXTBOX_PASSWORD_TEXT_CHANGED);
             // 
@@ -130,7 +130,7 @@ namespace Auto7z_GUI
             this.LabelPassword.AutoSize = true;
             this.LabelPassword.Location = new System.Drawing.Point(112, 260);
             this.LabelPassword.Name = "LabelPassword";
-            this.LabelPassword.Size = new System.Drawing.Size(68, 17);
+            this.LabelPassword.Size = new System.Drawing.Size(100, 24);
             this.LabelPassword.TabIndex = 6;
             this.LabelPassword.Text = "添加密码：";
             // 
@@ -139,7 +139,7 @@ namespace Auto7z_GUI
             this.LabelFormat.AutoSize = true;
             this.LabelFormat.Location = new System.Drawing.Point(112, 208);
             this.LabelFormat.Name = "LabelFormat";
-            this.LabelFormat.Size = new System.Drawing.Size(68, 17);
+            this.LabelFormat.Size = new System.Drawing.Size(100, 24);
             this.LabelFormat.TabIndex = 5;
             this.LabelFormat.Text = "生成格式：";
             // 
@@ -148,7 +148,7 @@ namespace Auto7z_GUI
             this.LabelUnit.AutoSize = true;
             this.LabelUnit.Location = new System.Drawing.Point(312, 154);
             this.LabelUnit.Name = "LabelUnit";
-            this.LabelUnit.Size = new System.Drawing.Size(28, 17);
+            this.LabelUnit.Size = new System.Drawing.Size(39, 24);
             this.LabelUnit.TabIndex = 4;
             this.LabelUnit.Text = "MB";
             // 
@@ -166,7 +166,7 @@ namespace Auto7z_GUI
             // 
             this.TextBoxSize.Location = new System.Drawing.Point(202, 152);
             this.TextBoxSize.Name = "TextBoxSize";
-            this.TextBoxSize.Size = new System.Drawing.Size(104, 23);
+            this.TextBoxSize.Size = new System.Drawing.Size(104, 31);
             this.TextBoxSize.TabIndex = 1;
             this.TextBoxSize.TextChanged += new System.EventHandler(this.TEXTBOX_SIZE_TEXT_CHANGED);
             this.TextBoxSize.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.TEXTBOX_SIZE_KEYPRESS);
@@ -176,20 +176,21 @@ namespace Auto7z_GUI
             this.LabelSize.AutoSize = true;
             this.LabelSize.Location = new System.Drawing.Point(112, 154);
             this.LabelSize.Name = "LabelSize";
-            this.LabelSize.Size = new System.Drawing.Size(68, 17);
+            this.LabelSize.Size = new System.Drawing.Size(100, 24);
             this.LabelSize.TabIndex = 0;
             this.LabelSize.Text = "分卷大小：";
             // 
             // MenuStrip
             // 
             this.MenuStrip.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            this.MenuStrip.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
             this.MenuStrip.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.MenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.LanguageMenu,
             this.AboutMenu});
             this.MenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MenuStrip.Name = "MenuStrip";
-            this.MenuStrip.Size = new System.Drawing.Size(484, 25);
+            this.MenuStrip.Size = new System.Drawing.Size(478, 32);
             this.MenuStrip.TabIndex = 2;
             this.MenuStrip.Text = "menuStrip1";
             // 
@@ -198,7 +199,7 @@ namespace Auto7z_GUI
             this.LanguageMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.LanguageMenuSelect});
             this.LanguageMenu.Name = "LanguageMenu";
-            this.LanguageMenu.Size = new System.Drawing.Size(44, 21);
+            this.LanguageMenu.Size = new System.Drawing.Size(62, 28);
             this.LanguageMenu.Text = "语言";
             // 
             // LanguageMenuSelect
@@ -208,27 +209,27 @@ namespace Auto7z_GUI
             this.LanguageMenuSelectzhTW,
             this.LanguageMenuSelectenUS});
             this.LanguageMenuSelect.Name = "LanguageMenuSelect";
-            this.LanguageMenuSelect.Size = new System.Drawing.Size(124, 22);
+            this.LanguageMenuSelect.Size = new System.Drawing.Size(182, 34);
             this.LanguageMenuSelect.Text = "选择语言";
             // 
             // LanguageMenuSelectzhCN
             // 
             this.LanguageMenuSelectzhCN.Name = "LanguageMenuSelectzhCN";
-            this.LanguageMenuSelectzhCN.Size = new System.Drawing.Size(124, 22);
+            this.LanguageMenuSelectzhCN.Size = new System.Drawing.Size(182, 34);
             this.LanguageMenuSelectzhCN.Text = "简体中文";
             this.LanguageMenuSelectzhCN.Click += new System.EventHandler(this.LANGUAGE_MENU_SELECT_zhCN_CLICK);
             // 
             // LanguageMenuSelectzhTW
             // 
             this.LanguageMenuSelectzhTW.Name = "LanguageMenuSelectzhTW";
-            this.LanguageMenuSelectzhTW.Size = new System.Drawing.Size(124, 22);
+            this.LanguageMenuSelectzhTW.Size = new System.Drawing.Size(182, 34);
             this.LanguageMenuSelectzhTW.Text = "繁體中文";
             this.LanguageMenuSelectzhTW.Click += new System.EventHandler(this.LANGUAGE_MENU_SELECT_zhTW_CLICK);
             // 
             // LanguageMenuSelectenUS
             // 
             this.LanguageMenuSelectenUS.Name = "LanguageMenuSelectenUS";
-            this.LanguageMenuSelectenUS.Size = new System.Drawing.Size(124, 22);
+            this.LanguageMenuSelectenUS.Size = new System.Drawing.Size(182, 34);
             this.LanguageMenuSelectenUS.Text = "English";
             this.LanguageMenuSelectenUS.Click += new System.EventHandler(this.LANGUAGE_MENU_SELECT_enUS_CLICK);
             // 
@@ -237,21 +238,21 @@ namespace Auto7z_GUI
             this.AboutMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.AboutMenuAbout});
             this.AboutMenu.Name = "AboutMenu";
-            this.AboutMenu.Size = new System.Drawing.Size(44, 21);
+            this.AboutMenu.Size = new System.Drawing.Size(62, 28);
             this.AboutMenu.Text = "关于";
             // 
             // AboutMenuAbout
             // 
             this.AboutMenuAbout.Name = "AboutMenuAbout";
-            this.AboutMenuAbout.Size = new System.Drawing.Size(116, 22);
+            this.AboutMenuAbout.Size = new System.Drawing.Size(172, 34);
             this.AboutMenuAbout.Text = "Auto7z";
             this.AboutMenuAbout.Click += new System.EventHandler(this.ABOUTMENU_ABOUT);
             // 
             // MainForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(484, 461);
+            this.ClientSize = new System.Drawing.Size(478, 444);
             this.Controls.Add(this.MainPanel);
             this.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
