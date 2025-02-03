@@ -53,6 +53,7 @@ namespace Auto7z_GUI
         public MainForm(string[] args)
         {
             InitializeComponent();
+            this.AutoScaleMode = AutoScaleMode.Dpi;
 
             string workPath = GET_WORK_PATH(); // 获取程序路径
             string xml = @"config.xml";
