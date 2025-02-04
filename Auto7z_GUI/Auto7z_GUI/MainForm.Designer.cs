@@ -31,15 +31,12 @@ namespace Auto7z_GUI
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.MainPanel = new System.Windows.Forms.Panel();
-            this.CheckBoxDisableSplit = new System.Windows.Forms.CheckBox();
             this.CheckBoxZstd = new System.Windows.Forms.CheckBox();
-            this.CheckBoxAutoSave = new System.Windows.Forms.CheckBox();
             this.ComboBoxFormat = new System.Windows.Forms.ComboBox();
             this.TextBoxPassword = new System.Windows.Forms.TextBox();
             this.LabelPassword = new System.Windows.Forms.Label();
             this.LabelFormat = new System.Windows.Forms.Label();
             this.LabelUnit = new System.Windows.Forms.Label();
-            this.ButtonConfig = new System.Windows.Forms.Button();
             this.TextBoxSize = new System.Windows.Forms.TextBox();
             this.LabelSize = new System.Windows.Forms.Label();
             this.MenuStrip = new System.Windows.Forms.MenuStrip();
@@ -50,45 +47,37 @@ namespace Auto7z_GUI
             this.LanguageMenuSelectenUS = new System.Windows.Forms.ToolStripMenuItem();
             this.AboutMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.AboutMenuAbout = new System.Windows.Forms.ToolStripMenuItem();
+            this.CheckBoxDisableSplit = new System.Windows.Forms.CheckBox();
+            this.ButtonConfig = new System.Windows.Forms.Button();
+            this.CheckBoxAutoSave = new System.Windows.Forms.CheckBox();
             this.MainPanel.SuspendLayout();
             this.MenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // MainPanel
             // 
-            this.MainPanel.Controls.Add(this.CheckBoxDisableSplit);
             this.MainPanel.Controls.Add(this.CheckBoxZstd);
-            this.MainPanel.Controls.Add(this.CheckBoxAutoSave);
             this.MainPanel.Controls.Add(this.ComboBoxFormat);
             this.MainPanel.Controls.Add(this.TextBoxPassword);
             this.MainPanel.Controls.Add(this.LabelPassword);
             this.MainPanel.Controls.Add(this.LabelFormat);
             this.MainPanel.Controls.Add(this.LabelUnit);
-            this.MainPanel.Controls.Add(this.ButtonConfig);
             this.MainPanel.Controls.Add(this.TextBoxSize);
             this.MainPanel.Controls.Add(this.LabelSize);
             this.MainPanel.Controls.Add(this.MenuStrip);
+            this.MainPanel.Controls.Add(this.CheckBoxDisableSplit);
+            this.MainPanel.Controls.Add(this.ButtonConfig);
+            this.MainPanel.Controls.Add(this.CheckBoxAutoSave);
             this.MainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
             this.MainPanel.Location = new System.Drawing.Point(0, 0);
             this.MainPanel.Name = "MainPanel";
             this.MainPanel.Size = new System.Drawing.Size(478, 444);
             this.MainPanel.TabIndex = 0;
             // 
-            // CheckBoxDisableSplit
-            // 
-            this.CheckBoxDisableSplit.AutoSize = true;
-            this.CheckBoxDisableSplit.Location = new System.Drawing.Point(12, 370);
-            this.CheckBoxDisableSplit.Name = "CheckBoxDisableSplit";
-            this.CheckBoxDisableSplit.Size = new System.Drawing.Size(108, 28);
-            this.CheckBoxDisableSplit.TabIndex = 11;
-            this.CheckBoxDisableSplit.Text = "禁用分卷";
-            this.CheckBoxDisableSplit.UseVisualStyleBackColor = true;
-            this.CheckBoxDisableSplit.CheckedChanged += new System.EventHandler(this.CHECKBOX_TARSPLIT_CHECKED_CHANGED);
-            // 
             // CheckBoxZstd
             // 
             this.CheckBoxZstd.AutoSize = true;
-            this.CheckBoxZstd.Location = new System.Drawing.Point(316, 207);
+            this.CheckBoxZstd.Location = new System.Drawing.Point(315, 214);
             this.CheckBoxZstd.Name = "CheckBoxZstd";
             this.CheckBoxZstd.Size = new System.Drawing.Size(72, 28);
             this.CheckBoxZstd.TabIndex = 10;
@@ -96,22 +85,11 @@ namespace Auto7z_GUI
             this.CheckBoxZstd.UseVisualStyleBackColor = true;
             this.CheckBoxZstd.CheckedChanged += new System.EventHandler(this.CHECKBOX_ZSTD_CHECKED_CHANGED);
             // 
-            // CheckBoxAutoSave
-            // 
-            this.CheckBoxAutoSave.AutoSize = true;
-            this.CheckBoxAutoSave.Location = new System.Drawing.Point(12, 404);
-            this.CheckBoxAutoSave.Name = "CheckBoxAutoSave";
-            this.CheckBoxAutoSave.Size = new System.Drawing.Size(234, 28);
-            this.CheckBoxAutoSave.TabIndex = 9;
-            this.CheckBoxAutoSave.Text = "程序关闭时自动保存配置";
-            this.CheckBoxAutoSave.UseVisualStyleBackColor = true;
-            this.CheckBoxAutoSave.CheckedChanged += new System.EventHandler(this.CHECKBOX_AUTOSAVE_CHECKED_CHANGED);
-            // 
             // ComboBoxFormat
             // 
             this.ComboBoxFormat.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.ComboBoxFormat.FormattingEnabled = true;
-            this.ComboBoxFormat.Location = new System.Drawing.Point(202, 204);
+            this.ComboBoxFormat.Location = new System.Drawing.Point(201, 211);
             this.ComboBoxFormat.Name = "ComboBoxFormat";
             this.ComboBoxFormat.Size = new System.Drawing.Size(104, 32);
             this.ComboBoxFormat.TabIndex = 8;
@@ -119,7 +97,7 @@ namespace Auto7z_GUI
             // 
             // TextBoxPassword
             // 
-            this.TextBoxPassword.Location = new System.Drawing.Point(202, 258);
+            this.TextBoxPassword.Location = new System.Drawing.Point(201, 265);
             this.TextBoxPassword.Name = "TextBoxPassword";
             this.TextBoxPassword.Size = new System.Drawing.Size(145, 31);
             this.TextBoxPassword.TabIndex = 7;
@@ -128,7 +106,7 @@ namespace Auto7z_GUI
             // LabelPassword
             // 
             this.LabelPassword.AutoSize = true;
-            this.LabelPassword.Location = new System.Drawing.Point(112, 260);
+            this.LabelPassword.Location = new System.Drawing.Point(111, 267);
             this.LabelPassword.Name = "LabelPassword";
             this.LabelPassword.Size = new System.Drawing.Size(100, 24);
             this.LabelPassword.TabIndex = 6;
@@ -137,7 +115,7 @@ namespace Auto7z_GUI
             // LabelFormat
             // 
             this.LabelFormat.AutoSize = true;
-            this.LabelFormat.Location = new System.Drawing.Point(112, 208);
+            this.LabelFormat.Location = new System.Drawing.Point(111, 215);
             this.LabelFormat.Name = "LabelFormat";
             this.LabelFormat.Size = new System.Drawing.Size(100, 24);
             this.LabelFormat.TabIndex = 5;
@@ -146,25 +124,15 @@ namespace Auto7z_GUI
             // LabelUnit
             // 
             this.LabelUnit.AutoSize = true;
-            this.LabelUnit.Location = new System.Drawing.Point(312, 154);
+            this.LabelUnit.Location = new System.Drawing.Point(311, 161);
             this.LabelUnit.Name = "LabelUnit";
             this.LabelUnit.Size = new System.Drawing.Size(39, 24);
             this.LabelUnit.TabIndex = 4;
             this.LabelUnit.Text = "MB";
             // 
-            // ButtonConfig
-            // 
-            this.ButtonConfig.Location = new System.Drawing.Point(325, 384);
-            this.ButtonConfig.Name = "ButtonConfig";
-            this.ButtonConfig.Size = new System.Drawing.Size(141, 48);
-            this.ButtonConfig.TabIndex = 3;
-            this.ButtonConfig.Text = "保存配置";
-            this.ButtonConfig.UseVisualStyleBackColor = true;
-            this.ButtonConfig.Click += new System.EventHandler(this.BUTTON_CONFIG_CLICK);
-            // 
             // TextBoxSize
             // 
-            this.TextBoxSize.Location = new System.Drawing.Point(202, 152);
+            this.TextBoxSize.Location = new System.Drawing.Point(201, 159);
             this.TextBoxSize.Name = "TextBoxSize";
             this.TextBoxSize.Size = new System.Drawing.Size(104, 31);
             this.TextBoxSize.TabIndex = 1;
@@ -174,7 +142,7 @@ namespace Auto7z_GUI
             // LabelSize
             // 
             this.LabelSize.AutoSize = true;
-            this.LabelSize.Location = new System.Drawing.Point(112, 154);
+            this.LabelSize.Location = new System.Drawing.Point(111, 161);
             this.LabelSize.Name = "LabelSize";
             this.LabelSize.Size = new System.Drawing.Size(100, 24);
             this.LabelSize.TabIndex = 0;
@@ -183,7 +151,6 @@ namespace Auto7z_GUI
             // MenuStrip
             // 
             this.MenuStrip.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.MenuStrip.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
             this.MenuStrip.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.MenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.LanguageMenu,
@@ -248,6 +215,38 @@ namespace Auto7z_GUI
             this.AboutMenuAbout.Text = "Auto7z";
             this.AboutMenuAbout.Click += new System.EventHandler(this.ABOUTMENU_ABOUT);
             // 
+            // CheckBoxDisableSplit
+            // 
+            this.CheckBoxDisableSplit.AutoSize = true;
+            this.CheckBoxDisableSplit.Location = new System.Drawing.Point(12, 369);
+            this.CheckBoxDisableSplit.Name = "CheckBoxDisableSplit";
+            this.CheckBoxDisableSplit.Size = new System.Drawing.Size(108, 28);
+            this.CheckBoxDisableSplit.TabIndex = 11;
+            this.CheckBoxDisableSplit.Text = "禁用分卷";
+            this.CheckBoxDisableSplit.UseVisualStyleBackColor = true;
+            this.CheckBoxDisableSplit.CheckedChanged += new System.EventHandler(this.CHECKBOX_TARSPLIT_CHECKED_CHANGED);
+            // 
+            // ButtonConfig
+            // 
+            this.ButtonConfig.Location = new System.Drawing.Point(346, 402);
+            this.ButtonConfig.Name = "ButtonConfig";
+            this.ButtonConfig.Size = new System.Drawing.Size(120, 30);
+            this.ButtonConfig.TabIndex = 3;
+            this.ButtonConfig.Text = "保存配置";
+            this.ButtonConfig.UseVisualStyleBackColor = true;
+            this.ButtonConfig.Click += new System.EventHandler(this.BUTTON_CONFIG_CLICK);
+            // 
+            // CheckBoxAutoSave
+            // 
+            this.CheckBoxAutoSave.AutoSize = true;
+            this.CheckBoxAutoSave.Location = new System.Drawing.Point(12, 403);
+            this.CheckBoxAutoSave.Name = "CheckBoxAutoSave";
+            this.CheckBoxAutoSave.Size = new System.Drawing.Size(234, 28);
+            this.CheckBoxAutoSave.TabIndex = 9;
+            this.CheckBoxAutoSave.Text = "程序关闭时自动保存配置";
+            this.CheckBoxAutoSave.UseVisualStyleBackColor = true;
+            this.CheckBoxAutoSave.CheckedChanged += new System.EventHandler(this.CHECKBOX_AUTOSAVE_CHECKED_CHANGED);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
@@ -259,7 +258,7 @@ namespace Auto7z_GUI
             this.MainMenuStrip = this.MenuStrip;
             this.Margin = new System.Windows.Forms.Padding(4);
             this.MaximizeBox = false;
-            this.MaximumSize = new System.Drawing.Size(600, 600);
+            this.MaximumSize = new System.Drawing.Size(500, 500);
             this.MinimumSize = new System.Drawing.Size(500, 500);
             this.Name = "MainForm";
             this.Text = "Auto7z";

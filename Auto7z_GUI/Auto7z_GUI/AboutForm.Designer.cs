@@ -31,7 +31,7 @@ namespace Auto7z_GUI
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(AboutForm));
             this.PanelAbout = new System.Windows.Forms.Panel();
-            this.ConfirmButton = new System.Windows.Forms.Button();
+            this.ButtonConfirm = new System.Windows.Forms.Button();
             this.LabelLicense = new System.Windows.Forms.LinkLabel();
             this.DeveloperLabel = new System.Windows.Forms.Label();
             this.LabelWebsite = new System.Windows.Forms.LinkLabel();
@@ -43,7 +43,7 @@ namespace Auto7z_GUI
             // 
             // PanelAbout
             // 
-            this.PanelAbout.Controls.Add(this.ConfirmButton);
+            this.PanelAbout.Controls.Add(this.ButtonConfirm);
             this.PanelAbout.Controls.Add(this.LabelLicense);
             this.PanelAbout.Controls.Add(this.DeveloperLabel);
             this.PanelAbout.Controls.Add(this.LabelWebsite);
@@ -52,28 +52,28 @@ namespace Auto7z_GUI
             this.PanelAbout.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PanelAbout.Location = new System.Drawing.Point(0, 0);
             this.PanelAbout.Name = "PanelAbout";
-            this.PanelAbout.Size = new System.Drawing.Size(778, 344);
+            this.PanelAbout.Size = new System.Drawing.Size(784, 361);
             this.PanelAbout.TabIndex = 0;
             // 
-            // ConfirmButton
+            // ButtonConfirm
             // 
-            this.ConfirmButton.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
-            this.ConfirmButton.Location = new System.Drawing.Point(330, 238);
-            this.ConfirmButton.Name = "ConfirmButton";
-            this.ConfirmButton.Size = new System.Drawing.Size(119, 35);
-            this.ConfirmButton.TabIndex = 5;
-            this.ConfirmButton.Text = "确定";
-            this.ConfirmButton.UseVisualStyleBackColor = true;
-            this.ConfirmButton.Click += new System.EventHandler(this.CONFIRM_BUTTON_CLICK);
+            this.ButtonConfirm.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.ButtonConfirm.Location = new System.Drawing.Point(333, 255);
+            this.ButtonConfirm.Name = "ButtonConfirm";
+            this.ButtonConfirm.Size = new System.Drawing.Size(100, 30);
+            this.ButtonConfirm.TabIndex = 5;
+            this.ButtonConfirm.Text = "确定";
+            this.ButtonConfirm.UseVisualStyleBackColor = true;
+            this.ButtonConfirm.Click += new System.EventHandler(this.CONFIRM_BUTTON_CLICK);
             // 
             // LabelLicense
             // 
             this.LabelLicense.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.LabelLicense.AutoSize = true;
             this.LabelLicense.Font = new System.Drawing.Font("微软雅黑", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.LabelLicense.Location = new System.Drawing.Point(337, 178);
+            this.LabelLicense.Location = new System.Drawing.Point(340, 186);
             this.LabelLicense.Name = "LabelLicense";
-            this.LabelLicense.Size = new System.Drawing.Size(99, 36);
+            this.LabelLicense.Size = new System.Drawing.Size(69, 25);
             this.LabelLicense.TabIndex = 4;
             this.LabelLicense.TabStop = true;
             this.LabelLicense.Text = "许可证";
@@ -84,9 +84,9 @@ namespace Auto7z_GUI
             this.DeveloperLabel.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
             this.DeveloperLabel.AutoSize = true;
             this.DeveloperLabel.Font = new System.Drawing.Font("Ink Free", 7F);
-            this.DeveloperLabel.Location = new System.Drawing.Point(228, 293);
+            this.DeveloperLabel.Location = new System.Drawing.Point(282, 310);
             this.DeveloperLabel.Name = "DeveloperLabel";
-            this.DeveloperLabel.Size = new System.Drawing.Size(327, 18);
+            this.DeveloperLabel.Size = new System.Drawing.Size(230, 12);
             this.DeveloperLabel.TabIndex = 3;
             this.DeveloperLabel.Text = "Copyright© 2024 LatteYogurt , All rights reserved.";
             // 
@@ -94,10 +94,10 @@ namespace Auto7z_GUI
             // 
             this.LabelWebsite.Anchor = System.Windows.Forms.AnchorStyles.None;
             this.LabelWebsite.AutoSize = true;
-            this.LabelWebsite.Font = new System.Drawing.Font("微软雅黑", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
-            this.LabelWebsite.Location = new System.Drawing.Point(321, 125);
+            this.LabelWebsite.Font = new System.Drawing.Font("微软雅黑", 14F);
+            this.LabelWebsite.Location = new System.Drawing.Point(324, 133);
             this.LabelWebsite.Name = "LabelWebsite";
-            this.LabelWebsite.Size = new System.Drawing.Size(161, 36);
+            this.LabelWebsite.Size = new System.Drawing.Size(112, 25);
             this.LabelWebsite.TabIndex = 1;
             this.LabelWebsite.TabStop = true;
             this.LabelWebsite.Text = "Github主页";
@@ -108,9 +108,9 @@ namespace Auto7z_GUI
             this.MainLabel.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.MainLabel.AutoSize = true;
             this.MainLabel.Font = new System.Drawing.Font("Segoe Print", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.MainLabel.Location = new System.Drawing.Point(359, 43);
+            this.MainLabel.Location = new System.Drawing.Point(362, 43);
             this.MainLabel.Name = "MainLabel";
-            this.MainLabel.Size = new System.Drawing.Size(124, 49);
+            this.MainLabel.Size = new System.Drawing.Size(86, 33);
             this.MainLabel.TabIndex = 0;
             this.MainLabel.Text = "Auto7z";
             // 
@@ -119,7 +119,7 @@ namespace Auto7z_GUI
             this.MainPic.Anchor = System.Windows.Forms.AnchorStyles.Top;
             this.MainPic.ErrorImage = null;
             this.MainPic.InitialImage = null;
-            this.MainPic.Location = new System.Drawing.Point(290, 36);
+            this.MainPic.Location = new System.Drawing.Point(293, 36);
             this.MainPic.Name = "MainPic";
             this.MainPic.Size = new System.Drawing.Size(64, 64);
             this.MainPic.TabIndex = 2;
@@ -127,9 +127,9 @@ namespace Auto7z_GUI
             // 
             // AboutForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 17F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(778, 344);
+            this.ClientSize = new System.Drawing.Size(784, 361);
             this.Controls.Add(this.PanelAbout);
             this.Font = new System.Drawing.Font("微软雅黑", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -137,7 +137,7 @@ namespace Auto7z_GUI
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(800, 400);
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(400, 400);
+            this.MinimumSize = new System.Drawing.Size(270, 270);
             this.Name = "AboutForm";
             this.Text = "关于 Auto7z";
             this.Load += new System.EventHandler(this.ABOUT_FORM_LOAD);
@@ -157,6 +157,6 @@ namespace Auto7z_GUI
         private System.Windows.Forms.PictureBox MainPic;
         private System.Windows.Forms.Label DeveloperLabel;
         private System.Windows.Forms.LinkLabel LabelLicense;
-        private System.Windows.Forms.Button ConfirmButton;
+        private System.Windows.Forms.Button ButtonConfirm;
     }
 }
