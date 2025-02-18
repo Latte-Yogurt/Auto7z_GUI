@@ -175,88 +175,32 @@ namespace Auto7z_GUI
                                 return;
                             }
 
-                            else if (!CHECK_LANG_EXIST())
+                            if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
                             {
-                                if (sevenZUsageCount < 1)
-                                {
-                                    WARNING_LANG_EXIST();
-                                }
-
-                                string command = GENERATE_COMMAND();
-
-                                if (command != null)
-                                {
-                                    if (Directory.Exists($"{newFolderPath}") && format == "7z")
-                                    {
-                                        DELETE_OLD_SEVENZ(newFolderPath);
-                                    }
-
-                                    if (Directory.Exists($"{newFolderPath}") && format == "zip")
-                                    {
-                                        DELETE_OLD_ZIP(newFolderPath);
-                                    }
-
-                                    bool finished = EXECUTE_COMMAND_BOOL(command);
-                                    if (!finished)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                            Directory.Delete(newFolderPath);
-                                        }
-                                    }
-
-                                    ADD_SEVENZ_USAGE_COUNT();
-                                    ADD_AUTO7Z_USAGE_COUNT();
-                                    this.Close();
-                                }
-
-                                else
-                                {
-                                    ERROR_EMPTY_PATH();
-                                    this.Close();
-                                    return;
-                                }
+                                WARNING_LANG_EXIST();
                             }
 
-                            else
+                            string command = GENERATE_COMMAND();
+
+                            if (command == null)
                             {
-                                string command = GENERATE_COMMAND();
-
-                                if (command != null)
-                                {
-                                    if (Directory.Exists($"{newFolderPath}") && format == "7z")
-                                    {
-                                        DELETE_OLD_SEVENZ(newFolderPath);
-                                    }
-
-                                    if (Directory.Exists($"{newFolderPath}") && format == "zip")
-                                    {
-                                        DELETE_OLD_ZIP(newFolderPath);
-                                    }
-
-                                    bool finished = EXECUTE_COMMAND_BOOL(command);
-                                    if (!finished)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                            Directory.Delete(newFolderPath);
-                                        }
-                                    }
-
-                                    ADD_SEVENZ_USAGE_COUNT();
-                                    ADD_AUTO7Z_USAGE_COUNT();
-                                    this.Close();
-                                }
-
-                                else
-                                {
-                                    ERROR_EMPTY_PATH();
-                                    this.Close();
-                                    return;
-                                }
+                                ERROR_EMPTY_PATH();
+                                this.Close();
+                                return;
                             }
+
+                            DELETE_OLD_FILES();
+
+                            bool finished = EXECUTE_COMMAND_BOOL(command);
+
+                            if (!finished)
+                            {
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                            }
+
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
+                            this.Close();
                         }
 
                         if (format == "tar")
@@ -268,142 +212,57 @@ namespace Auto7z_GUI
                                 return;
                             }
 
-                            else if (!CHECK_LANG_EXIST())
+                            if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
                             {
-                                if (sevenZUsageCount < 1)
-                                {
-                                    WARNING_LANG_EXIST();
-                                }
+                                WARNING_LANG_EXIST();
+                            }
 
-                                string command = GENERATE_COMMAND();
+                            string command = GENERATE_COMMAND();
 
-                                if (command != null)
+                            if (command == null)
+                            {
+                                ERROR_EMPTY_PATH();
+                                this.Close();
+                                return;
+                            }
+
+                            DELETE_OLD_FILES();
+
+                            bool tarFinished = EXECUTE_COMMAND_BOOL(command);
+
+                            if (!tarFinished)
+                            {
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                            }
+
+                            if (CheckBoxZstd.Checked)
+                            {
+                                while (tarFinished)
                                 {
-                                    if (Directory.Exists($"{newFolderPath}"))
+                                    string zstdCommand = ZSTD_COMMAND();
+
+                                    DELETE_OLD_FILES();
+
+                                    bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
+
+                                    if (!zstdFinished)
                                     {
-                                        DELETE_OLD_TAR_ZST(newFolderPath);
+                                        DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                                     }
 
-                                    bool tarFinished = EXECUTE_COMMAND_BOOL(command);
-
-                                    if (!tarFinished)
+                                    while (zstdFinished)
                                     {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                            Directory.Delete(newFolderPath);
-                                        }
+                                        DELETE_TEMP_TAR(newFolderPath);
+                                        break;
                                     }
 
-                                    if (CheckBoxZstd.Checked)
-                                    {
-                                        while (tarFinished)
-                                        {
-                                            string zstdCommand = ZSTD_COMMAND();
-
-                                            bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
-
-                                            if (zstdFinished)
-                                            {
-                                                if (Directory.Exists($"{newFolderPath}"))
-                                                {
-                                                    DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                    Directory.Delete(newFolderPath);
-                                                }
-                                            }
-
-                                            while (zstdFinished)
-                                            {
-                                                if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
-                                                {
-                                                    File.Delete($"{newFolderPath}\\{fileName}.tar");
-                                                }
-
-                                                break;
-                                            }
-
-                                            break;
-                                        }
-                                    }
-
-                                    ADD_SEVENZ_USAGE_COUNT();
-                                    ADD_AUTO7Z_USAGE_COUNT();
-                                    this.Close();
-                                }
-
-                                else
-                                {
-                                    ERROR_EMPTY_PATH();
-                                    this.Close();
-                                    return;
+                                    break;
                                 }
                             }
 
-                            else
-                            {
-                                string command = GENERATE_COMMAND();
-
-                                if (command != null)
-                                {
-                                    if (Directory.Exists($"{newFolderPath}"))
-                                    {
-                                        DELETE_OLD_TAR_ZST(newFolderPath);
-                                    }
-
-                                    bool tarFinished = EXECUTE_COMMAND_BOOL(command);
-
-                                    if (!tarFinished)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                            Directory.Delete(newFolderPath);
-                                        }
-                                    }
-
-                                    if (CheckBoxZstd.Checked)
-                                    {
-                                        while (tarFinished)
-                                        {
-                                            string zstdCommand = ZSTD_COMMAND();
-
-                                            bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
-
-                                            if (!zstdFinished)
-                                            {
-                                                if (Directory.Exists($"{newFolderPath}"))
-                                                {
-                                                    DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                    Directory.Delete(newFolderPath);
-                                                }
-                                            }
-
-                                            while (zstdFinished)
-                                            {
-                                                if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
-                                                {
-                                                    File.Delete($"{newFolderPath}\\{fileName}.tar");
-                                                }
-
-                                                break;
-                                            }
-
-                                            break;
-                                        }
-                                    }
-
-                                    ADD_SEVENZ_USAGE_COUNT();
-                                    ADD_AUTO7Z_USAGE_COUNT();
-                                    this.Close();
-                                }
-
-                                else
-                                {
-                                    ERROR_EMPTY_PATH();
-                                    this.Close();
-                                    return;
-                                }
-                            }
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
+                            this.Close();
                         }
 
                         if (format == "rar")
@@ -415,44 +274,33 @@ namespace Auto7z_GUI
                                 return;
                             }
 
-                            else
+                            string command = GENERATE_COMMAND();
+
+                            if (command == null)
                             {
-                                string command = GENERATE_COMMAND();
-
-                                if (command != null)
-                                {
-                                    if (Directory.Exists($"{newFolderPath}"))
-                                    {
-                                        DELETE_OLD_RAR(newFolderPath);
-                                    }
-
-                                    bool finished = EXECUTE_COMMAND_BOOL(command);
-                                    if (!finished)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                            Directory.Delete(newFolderPath);
-                                        }
-                                    }
-
-                                    ADD_RAR_USAGE_COUNT();
-                                    ADD_AUTO7Z_USAGE_COUNT();
-                                    this.Close();
-                                }
-
-                                else
-                                {
-                                    ERROR_EMPTY_PATH();
-                                    this.Close();
-                                    return;
-                                }
+                                ERROR_EMPTY_PATH();
+                                this.Close();
+                                return;
                             }
+
+                            DELETE_OLD_FILES();
+
+                            bool finished = EXECUTE_COMMAND_BOOL(command);
+
+                            if (!finished)
+                            {
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                            }
+
+                            ADD_RAR_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
+                            this.Close();
                         }
                     }
 
                     else
                     {
+                        ERROR_ILLAGEL_SIZE();
                         this.Close();
                     }
                 }
@@ -474,85 +322,31 @@ namespace Auto7z_GUI
                                 if (!CHECK_SEVENZ_EXIST())
                                 {
                                     ERROR_SEVENZ_EXIST();
-                                    break;
                                 }
 
-                                else if (!CHECK_LANG_EXIST())
+                                if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
                                 {
-                                    if (sevenZUsageCount < 1)
-                                    {
-                                        WARNING_LANG_EXIST();
-                                    }
-
-                                    string command = GENERATE_COMMAND();
-
-                                    if (command != null)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}") && format == "7z")
-                                        {
-                                            DELETE_OLD_SEVENZ(newFolderPath);
-                                        }
-
-                                        if (Directory.Exists($"{newFolderPath}") && format == "zip")
-                                        {
-                                            DELETE_OLD_ZIP(newFolderPath);
-                                        }
-
-                                        bool finished = EXECUTE_COMMAND_BOOL(command);
-                                        if (!finished)
-                                        {
-                                            if (Directory.Exists($"{newFolderPath}"))
-                                            {
-                                                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                Directory.Delete(newFolderPath);
-                                            }
-                                        }
-
-                                        ADD_SEVENZ_USAGE_COUNT();
-                                        ADD_AUTO7Z_USAGE_COUNT();
-                                    }
-
-                                    else
-                                    {
-                                        ERROR_EMPTY_PATH();
-                                    }
+                                    WARNING_LANG_EXIST();
                                 }
 
-                                else
+                                string command = GENERATE_COMMAND();
+
+                                if (command == null)
                                 {
-                                    string command = GENERATE_COMMAND();
-
-                                    if (command != null)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}") && format == "7z")
-                                        {
-                                            DELETE_OLD_SEVENZ(newFolderPath);
-                                        }
-
-                                        if (Directory.Exists($"{newFolderPath}") && format == "zip")
-                                        {
-                                            DELETE_OLD_ZIP(newFolderPath);
-                                        }
-
-                                        bool finished = EXECUTE_COMMAND_BOOL(command);
-                                        if (!finished)
-                                        {
-                                            if (Directory.Exists($"{newFolderPath}"))
-                                            {
-                                                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                Directory.Delete(newFolderPath);
-                                            }
-                                        }
-
-                                        ADD_SEVENZ_USAGE_COUNT();
-                                        ADD_AUTO7Z_USAGE_COUNT();
-                                    }
-
-                                    else
-                                    {
-                                        ERROR_EMPTY_PATH();
-                                    }
+                                    ERROR_EMPTY_PATH();
                                 }
+
+                                DELETE_OLD_FILES();
+
+                                bool finished = EXECUTE_COMMAND_BOOL(command);
+
+                                if (!finished)
+                                {
+                                    DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                }
+
+                                ADD_SEVENZ_USAGE_COUNT();
+                                ADD_AUTO7Z_USAGE_COUNT();
                             }
 
                             if (format == "tar")
@@ -560,139 +354,56 @@ namespace Auto7z_GUI
                                 if (!CHECK_SEVENZ_EXIST())
                                 {
                                     ERROR_SEVENZ_EXIST();
-                                    break;
                                 }
 
-                                else if (!CHECK_LANG_EXIST())
+                                if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
                                 {
-                                    if (sevenZUsageCount < 1)
-                                    {
-                                        WARNING_LANG_EXIST();
-                                    }
-
-                                    string command = GENERATE_COMMAND();
-
-                                    if (command != null)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_OLD_TAR_ZST(newFolderPath);
-                                        }
-
-                                        bool tarFinished = EXECUTE_COMMAND_BOOL(command);
-
-                                        if (!tarFinished)
-                                        {
-                                            if (Directory.Exists($"{newFolderPath}"))
-                                            {
-                                                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                Directory.Delete(newFolderPath);
-                                            }
-                                        }
-
-                                        if (CheckBoxZstd.Checked)
-                                        {
-                                            while (tarFinished)
-                                            {
-                                                string zstdCommand = ZSTD_COMMAND();
-
-                                                bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
-
-                                                if (zstdFinished)
-                                                {
-                                                    if (Directory.Exists($"{newFolderPath}"))
-                                                    {
-                                                        DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                        Directory.Delete(newFolderPath);
-                                                    }
-                                                }
-
-                                                while (zstdFinished)
-                                                {
-                                                    if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
-                                                    {
-                                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
-                                                    }
-
-                                                    break;
-                                                }
-
-                                                break;
-                                            }
-                                        }
-
-                                        ADD_SEVENZ_USAGE_COUNT();
-                                        ADD_AUTO7Z_USAGE_COUNT();
-                                    }
-
-                                    else
-                                    {
-                                        ERROR_EMPTY_PATH();
-                                    }
+                                    WARNING_LANG_EXIST();
                                 }
 
-                                else
+                                string command = GENERATE_COMMAND();
+
+                                if (command == null)
                                 {
-                                    string command = GENERATE_COMMAND();
+                                    ERROR_EMPTY_PATH();
+                                }
 
-                                    if (command != null)
+                                DELETE_OLD_FILES();
+
+                                bool tarFinished = EXECUTE_COMMAND_BOOL(command);
+
+                                if (!tarFinished)
+                                {
+                                    DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                }
+
+                                if (CheckBoxZstd.Checked)
+                                {
+                                    while (tarFinished)
                                     {
-                                        if (Directory.Exists($"{newFolderPath}"))
+                                        string zstdCommand = ZSTD_COMMAND();
+
+                                        DELETE_OLD_FILES();
+
+                                        bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
+
+                                        if (!zstdFinished)
                                         {
-                                            DELETE_OLD_TAR_ZST(newFolderPath);
+                                            DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                                         }
 
-                                        bool tarFinished = EXECUTE_COMMAND_BOOL(command);
-
-                                        if (!tarFinished)
+                                        while (zstdFinished)
                                         {
-                                            if (Directory.Exists($"{newFolderPath}"))
-                                            {
-                                                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                Directory.Delete(newFolderPath);
-                                            }
+                                            DELETE_TEMP_TAR(newFolderPath);
+                                            break;
                                         }
 
-                                        if (CheckBoxZstd.Checked)
-                                        {
-                                            while (tarFinished)
-                                            {
-                                                string zstdCommand = ZSTD_COMMAND();
-
-                                                bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
-
-                                                if (!zstdFinished)
-                                                {
-                                                    if (Directory.Exists($"{newFolderPath}"))
-                                                    {
-                                                        DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                        Directory.Delete(newFolderPath);
-                                                    }
-                                                }
-
-                                                while (zstdFinished)
-                                                {
-                                                    if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
-                                                    {
-                                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
-                                                    }
-
-                                                    break;
-                                                }
-
-                                                break;
-                                            }
-                                        }
-
-                                        ADD_SEVENZ_USAGE_COUNT();
-                                        ADD_AUTO7Z_USAGE_COUNT();
-                                    }
-
-                                    else
-                                    {
-                                        ERROR_EMPTY_PATH();
+                                        break;
                                     }
                                 }
+
+                                ADD_SEVENZ_USAGE_COUNT();
+                                ADD_AUTO7Z_USAGE_COUNT();
                             }
 
                             if (format == "rar")
@@ -700,38 +411,26 @@ namespace Auto7z_GUI
                                 if (!CHECK_RAR_EXIST())
                                 {
                                     ERROR_RAR_EXIST();
-                                    break;
                                 }
 
-                                else
+                                string command = GENERATE_COMMAND();
+
+                                if (command == null)
                                 {
-                                    string command = GENERATE_COMMAND();
-
-                                    if (command != null)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_OLD_RAR(newFolderPath);
-                                        }
-
-                                        bool finished = EXECUTE_COMMAND_BOOL(command);
-                                        if (!finished)
-                                        {
-                                            if (Directory.Exists($"{newFolderPath}"))
-                                            {
-                                                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                Directory.Delete(newFolderPath);
-                                            }
-                                        }
-
-                                        ADD_RAR_USAGE_COUNT();
-                                    }
-
-                                    else
-                                    {
-                                        ERROR_EMPTY_PATH();
-                                    }
+                                    ERROR_EMPTY_PATH();
                                 }
+
+                                DELETE_OLD_FILES();
+
+                                bool finished = EXECUTE_COMMAND_BOOL(command);
+
+                                if (!finished)
+                                {
+                                    DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                }
+
+                                ADD_RAR_USAGE_COUNT();
+                                ADD_AUTO7Z_USAGE_COUNT();
                             }
                         }
                     }
@@ -953,6 +652,43 @@ namespace Auto7z_GUI
             return command;
         }
 
+        private void DELETE_OLD_FILES()
+        {
+            if (Directory.Exists($"{newFolderPath}") && format == "7z")
+            {
+                DELETE_OLD_SEVENZ(newFolderPath);
+            }
+
+            if (Directory.Exists($"{newFolderPath}") && format == "zip")
+            {
+                DELETE_OLD_ZIP(newFolderPath);
+            }
+
+            if (Directory.Exists($"{newFolderPath}") && format == "rar")
+            {
+                DELETE_OLD_RAR(newFolderPath);
+            }
+
+            if (Directory.Exists($"{newFolderPath}") && format == "tar" && !CheckBoxZstd.Checked)
+            {
+                DELETE_OLD_TAR(newFolderPath);
+            }
+
+            if (Directory.Exists($"{newFolderPath}") && format == "tar" && CheckBoxZstd.Checked)
+            {
+                DELETE_OLD_TAR_ZST(newFolderPath);
+            }
+        }
+
+        private void DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED()
+        {
+            if (Directory.Exists($"{newFolderPath}"))
+            {
+                DELETE_DIRECTOR_CONTENTS(newFolderPath);
+                Directory.Delete(newFolderPath);
+            }
+        }
+
         private void DELETE_OLD_SEVENZ(string dirPath)
         {
             if (Directory.Exists(dirPath))
@@ -1022,6 +758,29 @@ namespace Auto7z_GUI
             }
         }
 
+        private void DELETE_OLD_TAR(string dirPath)
+        {
+            if (Directory.Exists(dirPath))
+            {
+                string[] files = Directory.GetFiles(dirPath);
+
+                foreach (string file in files)
+                {
+                    if (Path.GetFileName(file).Contains("tar"))
+                    {
+                        try
+                        {
+                            File.Delete(file);
+                        }
+                        catch (Exception ex)
+                        {
+                            ERROR_EXCEPTION_MESSAGE(ex);
+                        }
+                    }
+                }
+            }
+        }
+
         private void DELETE_OLD_TAR_ZST(string dirPath)
         {
             if (Directory.Exists(dirPath))
@@ -1040,6 +799,26 @@ namespace Auto7z_GUI
                         {
                             ERROR_EXCEPTION_MESSAGE(ex);
                         }
+                    }
+                }
+            }
+        }
+
+        private void DELETE_TEMP_TAR(string dirPath)
+        {
+            if (Directory.Exists(dirPath))
+            {
+                string file = $"{dirPath}\\{fileName}.tar";
+
+                if (File.Exists(file))
+                {
+                    try
+                    {
+                        File.Delete(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        ERROR_EXCEPTION_MESSAGE(ex);
                     }
                 }
             }
@@ -2484,6 +2263,22 @@ namespace Auto7z_GUI
             }
         }
 
+        private void ERROR_ILLAGEL_SIZE()
+        {
+            switch (currentLanguage)
+            {
+                case "zh-CN":
+                    MessageBox.Show("存在非法的文件大小。", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "zh-TW":
+                    MessageBox.Show("存在非法的文件大小。", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "en-US":
+                    MessageBox.Show("Invalid file size.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+            }
+        }
+
         private void ERROR_EXCEPTION_MESSAGE(Exception error)
         {
             switch (currentLanguage)
@@ -2723,7 +2518,140 @@ namespace Auto7z_GUI
 
             if (files != null && files.Length > 0)
             {
-                if (files.Length > 1)
+                if (files.Length < 1)
+                {
+                    filePath = files[0];
+                    fileName = Path.GetFileNameWithoutExtension(filePath);
+                    directoryPath = Path.GetDirectoryName(filePath);
+
+                    bool isLagelSize = GET_SIZE(filePath);
+
+                    if (isLagelSize)
+                    {
+                        if (format == "7z" || format == "zip")
+                        {
+                            if (!CHECK_SEVENZ_EXIST())
+                            {
+                                ERROR_SEVENZ_EXIST();
+                            }
+
+                            if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
+                            {
+                                WARNING_LANG_EXIST();
+                            }
+
+                            string command = GENERATE_COMMAND();
+
+                            if (command == null)
+                            {
+                                ERROR_EMPTY_PATH();
+                            }
+
+                            DELETE_OLD_FILES();
+
+                            bool finished = EXECUTE_COMMAND_BOOL(command);
+
+                            if (!finished)
+                            {
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                            }
+
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
+                        }
+
+                        if (format == "tar")
+                        {
+                            if (!CHECK_SEVENZ_EXIST())
+                            {
+                                ERROR_SEVENZ_EXIST();
+                            }
+
+                            if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
+                            {
+                                WARNING_LANG_EXIST();
+                            }
+
+                            string command = GENERATE_COMMAND();
+
+                            if (command == null)
+                            {
+                                ERROR_EMPTY_PATH();
+                            }
+
+                            DELETE_OLD_FILES();
+
+                            bool tarFinished = EXECUTE_COMMAND_BOOL(command);
+
+                            if (!tarFinished)
+                            {
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                            }
+
+                            if (CheckBoxZstd.Checked)
+                            {
+                                while (tarFinished)
+                                {
+                                    string zstdCommand = ZSTD_COMMAND();
+
+                                    DELETE_OLD_FILES();
+
+                                    bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
+
+                                    if (!zstdFinished)
+                                    {
+                                        DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                    }
+
+                                    while (zstdFinished)
+                                    {
+                                        DELETE_TEMP_TAR(newFolderPath);
+                                        break;
+                                    }
+
+                                    break;
+                                }
+                            }
+
+                            ADD_SEVENZ_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
+                        }
+
+                        if (format == "rar")
+                        {
+                            if (!CHECK_RAR_EXIST())
+                            {
+                                ERROR_RAR_EXIST();
+                            }
+
+                            string command = GENERATE_COMMAND();
+
+                            if (command == null)
+                            {
+                                ERROR_EMPTY_PATH();
+                            }
+
+                            DELETE_OLD_FILES();
+
+                            bool finished = EXECUTE_COMMAND_BOOL(command);
+
+                            if (!finished)
+                            {
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                            }
+
+                            ADD_RAR_USAGE_COUNT();
+                            ADD_AUTO7Z_USAGE_COUNT();
+                        }
+                    }
+
+                    else
+                    {
+                        ERROR_ILLAGEL_SIZE();
+                    }
+                }
+
+                else
                 {
                     foreach (var simpleFilePath in files)
                     {
@@ -2743,80 +2671,29 @@ namespace Auto7z_GUI
                                     break;
                                 }
 
-                                else if (!CHECK_LANG_EXIST())
+                                if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
                                 {
-                                    if (sevenZUsageCount < 1)
-                                    {
-                                        WARNING_LANG_EXIST();
-                                    }
-
-                                    string command = GENERATE_COMMAND();
-                                    if (command != null)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}") && format == "7z")
-                                        {
-                                            DELETE_OLD_SEVENZ(newFolderPath);
-                                        }
-
-                                        if (Directory.Exists($"{newFolderPath}") && format == "zip")
-                                        {
-                                            DELETE_OLD_ZIP(newFolderPath);
-                                        }
-
-                                        bool finished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-                                        if (!finished)
-                                        {
-                                            if (Directory.Exists($"{newFolderPath}"))
-                                            {
-                                                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                Directory.Delete(newFolderPath);
-                                            }
-                                        }
-
-                                        ADD_SEVENZ_USAGE_COUNT();
-                                        ADD_AUTO7Z_USAGE_COUNT();
-                                    }
-
-                                    else
-                                    {
-                                        ERROR_EMPTY_PATH();
-                                    }
+                                    WARNING_LANG_EXIST();
                                 }
 
-                                else
+                                string command = GENERATE_COMMAND();
+
+                                if (command == null)
                                 {
-                                    string command = GENERATE_COMMAND();
-                                    if (command != null)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}") && format == "7z")
-                                        {
-                                            DELETE_OLD_SEVENZ(newFolderPath);
-                                        }
-
-                                        if (Directory.Exists($"{newFolderPath}") && format == "zip")
-                                        {
-                                            DELETE_OLD_ZIP(newFolderPath);
-                                        }
-
-                                        bool finished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-                                        if (!finished)
-                                        {
-                                            if (Directory.Exists($"{newFolderPath}"))
-                                            {
-                                                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                Directory.Delete(newFolderPath);
-                                            }
-                                        }
-
-                                        ADD_SEVENZ_USAGE_COUNT();
-                                        ADD_AUTO7Z_USAGE_COUNT();
-                                    }
-
-                                    else
-                                    {
-                                        ERROR_EMPTY_PATH();
-                                    }
+                                    ERROR_EMPTY_PATH();
                                 }
+
+                                DELETE_OLD_FILES();
+
+                                bool finished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
+
+                                if (!finished)
+                                {
+                                    DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                }
+
+                                ADD_SEVENZ_USAGE_COUNT();
+                                ADD_AUTO7Z_USAGE_COUNT();
                             }
 
                             if (format == "tar")
@@ -2827,136 +2704,54 @@ namespace Auto7z_GUI
                                     break;
                                 }
 
-                                else if (!CHECK_LANG_EXIST())
+                                if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
                                 {
-                                    if (sevenZUsageCount < 1)
-                                    {
-                                        WARNING_LANG_EXIST();
-                                    }
+                                    WARNING_LANG_EXIST();
+                                }
 
-                                    string command = GENERATE_COMMAND();
+                                string command = GENERATE_COMMAND();
 
-                                    if (command != null)
+                                if (command == null)
+                                {
+                                    ERROR_EMPTY_PATH();
+                                }
+
+                                DELETE_OLD_FILES();
+
+                                bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
+
+                                if (!tarFinished)
+                                {
+                                    DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                }
+
+                                if (CheckBoxZstd.Checked)
+                                {
+                                    while (tarFinished)
                                     {
-                                        if (Directory.Exists($"{newFolderPath}"))
+                                        string zstdCommand = ZSTD_COMMAND();
+
+                                        DELETE_OLD_FILES();
+
+                                        bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
+
+                                        if (!zstdFinished)
                                         {
-                                            DELETE_OLD_TAR_ZST(newFolderPath);
+                                            DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                                         }
 
-                                        bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-
-                                        if (!tarFinished)
+                                        while (zstdFinished)
                                         {
-                                            if (Directory.Exists($"{newFolderPath}"))
-                                            {
-                                                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                Directory.Delete(newFolderPath);
-                                            }
+                                            DELETE_TEMP_TAR(newFolderPath);
+                                            break;
                                         }
 
-                                        if (CheckBoxZstd.Checked)
-                                        {
-                                            while (tarFinished)
-                                            {
-                                                string zstdCommand = ZSTD_COMMAND();
-
-                                                bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
-
-                                                if (!zstdFinished)
-                                                {
-                                                    if (Directory.Exists($"{newFolderPath}"))
-                                                    {
-                                                        DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                        Directory.Delete(newFolderPath);
-                                                    }
-                                                }
-
-                                                while (zstdFinished)
-                                                {
-                                                    if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
-                                                    {
-                                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
-                                                    }
-
-                                                    break;
-                                                }
-
-                                                break;
-                                            }
-                                        }
-
-                                        ADD_SEVENZ_USAGE_COUNT();
-                                        ADD_AUTO7Z_USAGE_COUNT();
-                                    }
-
-                                    else
-                                    {
-                                        ERROR_EMPTY_PATH();
+                                        break;
                                     }
                                 }
 
-                                else
-                                {
-                                    string command = GENERATE_COMMAND();
-
-                                    if (command != null)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_OLD_TAR_ZST(newFolderPath);
-                                        }
-
-                                        bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-
-                                        if (!tarFinished)
-                                        {
-                                            if (Directory.Exists($"{newFolderPath}"))
-                                            {
-                                                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                Directory.Delete(newFolderPath);
-                                            }
-                                        }
-
-                                        if (CheckBoxZstd.Checked)
-                                        {
-                                            while (tarFinished)
-                                            {
-                                                string zstdCommand = ZSTD_COMMAND();
-
-                                                bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
-
-                                                if (!zstdFinished)
-                                                {
-                                                    if (Directory.Exists($"{newFolderPath}"))
-                                                    {
-                                                        DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                        Directory.Delete(newFolderPath);
-                                                    }
-                                                }
-
-                                                while (zstdFinished)
-                                                {
-                                                    if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
-                                                    {
-                                                        File.Delete($"{newFolderPath}\\{fileName}.tar");
-                                                    }
-
-                                                    break;
-                                                }
-
-                                                break;
-                                            }
-                                        }
-
-                                        ADD_SEVENZ_USAGE_COUNT();
-                                        ADD_AUTO7Z_USAGE_COUNT();
-                                    }
-
-                                    else
-                                    {
-                                        ERROR_EMPTY_PATH();
-                                    }
-                                }
+                                ADD_SEVENZ_USAGE_COUNT();
+                                ADD_AUTO7Z_USAGE_COUNT();
                             }
 
                             if (format == "rar")
@@ -2964,312 +2759,26 @@ namespace Auto7z_GUI
                                 if (!CHECK_RAR_EXIST())
                                 {
                                     ERROR_RAR_EXIST();
-                                    break;
-                                }
-
-                                else
-                                {
-                                    string command = GENERATE_COMMAND();
-
-                                    if (command != null)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_OLD_RAR(newFolderPath);
-                                        }
-
-                                        bool finished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-                                        if (!finished)
-                                        {
-                                            if (Directory.Exists($"{newFolderPath}"))
-                                            {
-                                                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                Directory.Delete(newFolderPath);
-                                            }
-                                        }
-
-                                        ADD_RAR_USAGE_COUNT();
-                                        ADD_AUTO7Z_USAGE_COUNT();
-                                    }
-
-                                    else
-                                    {
-                                        ERROR_EMPTY_PATH();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                else
-                {
-                    filePath = files[0];
-                    fileName = Path.GetFileNameWithoutExtension(filePath);
-                    directoryPath = Path.GetDirectoryName(filePath);
-
-                    bool isLagelSize = GET_SIZE(filePath);
-
-                    if (isLagelSize)
-                    {
-                        if (format == "7z" || format == "zip")
-                        {
-                            if (!CHECK_SEVENZ_EXIST())
-                            {
-                                ERROR_SEVENZ_EXIST();
-                            }
-
-                            else if (!CHECK_LANG_EXIST())
-                            {
-                                if (sevenZUsageCount < 1)
-                                {
-                                    WARNING_LANG_EXIST();
-                                }
-
-                                string command = GENERATE_COMMAND();
-                                if (command != null)
-                                {
-                                    if (Directory.Exists($"{newFolderPath}") && format == "7z")
-                                    {
-                                        DELETE_OLD_SEVENZ(newFolderPath);
-                                    }
-
-                                    if (Directory.Exists($"{newFolderPath}") && format == "zip")
-                                    {
-                                        DELETE_OLD_ZIP(newFolderPath);
-                                    }
-
-                                    bool finished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-                                    if (!finished)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                            Directory.Delete(newFolderPath);
-                                        }
-                                    }
-
-                                    ADD_SEVENZ_USAGE_COUNT();
-                                    ADD_AUTO7Z_USAGE_COUNT();
-                                }
-
-                                else
-                                {
-                                    ERROR_EMPTY_PATH();
-                                }
-                            }
-
-                            else
-                            {
-                                string command = GENERATE_COMMAND();
-                                if (command != null)
-                                {
-                                    if (Directory.Exists($"{newFolderPath}") && format == "7z")
-                                    {
-                                        DELETE_OLD_SEVENZ(newFolderPath);
-                                    }
-
-                                    if (Directory.Exists($"{newFolderPath}") && format == "zip")
-                                    {
-                                        DELETE_OLD_ZIP(newFolderPath);
-                                    }
-
-                                    bool finished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-                                    if (!finished)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                            Directory.Delete(newFolderPath);
-                                        }
-                                    }
-
-                                    ADD_SEVENZ_USAGE_COUNT();
-                                    ADD_AUTO7Z_USAGE_COUNT();
-                                }
-
-                                else
-                                {
-                                    ERROR_EMPTY_PATH();
-                                }
-                            }
-                        }
-
-                        if (format == "tar")
-                        {
-                            if (!CHECK_SEVENZ_EXIST())
-                            {
-                                ERROR_SEVENZ_EXIST();
-                            }
-
-                            else if (!CHECK_LANG_EXIST())
-                            {
-                                if (sevenZUsageCount < 1)
-                                {
-                                    WARNING_LANG_EXIST();
                                 }
 
                                 string command = GENERATE_COMMAND();
 
-                                if (command != null)
-                                {
-                                    if (Directory.Exists($"{newFolderPath}"))
-                                    {
-                                        DELETE_OLD_TAR_ZST(newFolderPath);
-                                    }
-
-                                    bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-
-                                    if (!tarFinished)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                            Directory.Delete(newFolderPath);
-                                        }
-                                    }
-
-                                    if (CheckBoxZstd.Checked)
-                                    {
-                                        while (tarFinished)
-                                        {
-                                            string zstdCommand = ZSTD_COMMAND();
-
-                                            bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
-
-                                            if (!zstdFinished)
-                                            {
-                                                if (Directory.Exists($"{newFolderPath}"))
-                                                {
-                                                    DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                    Directory.Delete(newFolderPath);
-                                                }
-                                            }
-
-                                            while (zstdFinished)
-                                            {
-                                                if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
-                                                {
-                                                    File.Delete($"{newFolderPath}\\{fileName}.tar");
-                                                }
-
-                                                break;
-                                            }
-
-                                            break;
-                                        }
-                                    }
-
-                                    ADD_SEVENZ_USAGE_COUNT();
-                                    ADD_AUTO7Z_USAGE_COUNT();
-                                }
-
-                                else
+                                if (command == null)
                                 {
                                     ERROR_EMPTY_PATH();
                                 }
-                            }
 
-                            else
-                            {
-                                string command = GENERATE_COMMAND();
+                                DELETE_OLD_FILES();
 
-                                if (command != null)
+                                bool finished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
+
+                                if (!finished)
                                 {
-                                    if (Directory.Exists($"{newFolderPath}"))
-                                    {
-                                        DELETE_OLD_TAR_ZST(newFolderPath);
-                                    }
-
-                                    bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-
-                                    if (!tarFinished)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                            Directory.Delete(newFolderPath);
-                                        }
-                                    }
-
-                                    if (CheckBoxZstd.Checked)
-                                    {
-                                        while (tarFinished)
-                                        {
-                                            string zstdCommand = ZSTD_COMMAND();
-
-                                            bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
-
-                                            if (!zstdFinished)
-                                            {
-                                                if (Directory.Exists($"{newFolderPath}"))
-                                                {
-                                                    DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                                    Directory.Delete(newFolderPath);
-                                                }
-                                            }
-
-                                            while (zstdFinished)
-                                            {
-                                                if (File.Exists($"{newFolderPath}\\{fileName}.tar"))
-                                                {
-                                                    File.Delete($"{newFolderPath}\\{fileName}.tar");
-                                                }
-
-                                                break;
-                                            }
-
-                                            break;
-                                        }
-                                    }
-
-                                    ADD_SEVENZ_USAGE_COUNT();
-                                    ADD_AUTO7Z_USAGE_COUNT();
+                                    DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                                 }
 
-                                else
-                                {
-                                    ERROR_EMPTY_PATH();
-                                }
-                            }
-                        }
-
-                        if (format == "rar")
-                        {
-                            if (!CHECK_RAR_EXIST())
-                            {
-                                ERROR_RAR_EXIST();
-                            }
-
-                            else
-                            {
-                                string command = GENERATE_COMMAND();
-
-                                if (command != null)
-                                {
-                                    if (Directory.Exists($"{newFolderPath}"))
-                                    {
-                                        DELETE_OLD_RAR(newFolderPath);
-                                    }
-
-                                    bool finished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
-                                    if (!finished)
-                                    {
-                                        if (Directory.Exists($"{newFolderPath}"))
-                                        {
-                                            DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                                            Directory.Delete(newFolderPath);
-                                        }
-                                    }
-
-                                    ADD_RAR_USAGE_COUNT();
-                                    ADD_AUTO7Z_USAGE_COUNT();
-                                }
-
-                                else
-                                {
-                                    ERROR_EMPTY_PATH();
-                                }
+                                ADD_RAR_USAGE_COUNT();
+                                ADD_AUTO7Z_USAGE_COUNT();
                             }
                         }
                     }
