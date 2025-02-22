@@ -91,12 +91,26 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
+    <EmbeddedResource Include="Resource\rar\Default.SFX" />
+    <EmbeddedResource Include="Resource\rar\Default64.SFX" />
+    <EmbeddedResource Include="Resource\rar\rarreg.key" />
+    <EmbeddedResource Include="Resource\rar\WinCon.SFX" />
+    <EmbeddedResource Include="Resource\rar\WinCon64.SFX" />
+    <EmbeddedResource Include="Resource\rar\Zip.SFX" />
+    <EmbeddedResource Include="Resource\rar\Zip64.SFX" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Layla.ico" />
+    <EmbeddedResource Include="Resource\sz\7z.dll" />
+    <EmbeddedResource Include="Resource\sz\7z.exe" />
+    <EmbeddedResource Include="Resource\sz\Lang\zh-cn.txt" />
+    <EmbeddedResource Include="Resource\sz\Lang\zh-tw.txt" />
+    <EmbeddedResource Include="Resource\rar\7zxa.dll" />
+    <EmbeddedResource Include="Resource\rar\Rar.exe" />
+    <EmbeddedResource Include="Resource\rar\WinRAR.exe" />
     <EmbeddedResource Include="Layla64.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

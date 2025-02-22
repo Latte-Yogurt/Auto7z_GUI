@@ -17,18 +17,27 @@ namespace Auto7z_GUI
     {
         private Dictionary<string, Dictionary<string, string>> languageTexts;
 
+        public string workPath;
+        public bool hasPermission;
+        public bool isCreate7zFolder = true;
+        public bool isCreateLangFolder = true;
+        public bool isCreateRarFolder = true;
         public string xmlPath;
         public bool isMultipleFiles;
         public string filePath;
         public string fileName;
         public string directoryPath;
         public string sevenZPath;
+        public string sevenZEXEPath;
         public string sevenZDllPath;
         public string langPath;
+        public string zhCNPath;
+        public string zhTWPath;
+        public string rarPath;
         public string sevenZXADllPath;
         public string defaultSFXPath;
         public string default64SFXPath;
-        public string rarPath;
+        public string rarEXEPath;
         public string rarRegKeyPath;
         public string winConSFXPath;
         public string winCon64SFXPath;
@@ -65,7 +74,16 @@ namespace Auto7z_GUI
             SET_CLIENT_SIZE();
             SET_MAINFORM_LOCATION();
 
-            string workPath = GET_WORK_PATH(); // 获取程序路径
+            workPath = GET_WORK_PATH(); // 获取程序路径
+            hasPermission = CHECK_WORK_PATH_WRITABLE(workPath, out Exception ex);
+
+            if (!hasPermission)
+            {
+                ERROR_NO_PREMISSION(workPath, ex);
+                this.Close();
+                return;
+            }
+
             string xml = @"config.xml";
             xmlPath = Path.Combine(workPath, xml);
             CHECK_XML_LEGAL(xmlPath);
@@ -101,14 +119,26 @@ namespace Auto7z_GUI
                 }
             }
 
-            string sevenZ = @"7z\\7z.exe";
+            string sevenZ = @"7z";
             sevenZPath = Path.Combine(workPath, sevenZ);
+
+            string sevenZEXE = @"7z\\7z.exe";
+            sevenZEXEPath = Path.Combine(workPath, sevenZEXE);
 
             string sevenZDll = @"7z\\7z.dll";
             sevenZDllPath = Path.Combine(workPath, sevenZDll);
 
             string Lang = @"7z\\Lang";
             langPath = Path.Combine(workPath, Lang);
+
+            string zhCN = @"7z\\Lang\\zh-cn.txt";
+            zhCNPath = Path.Combine(workPath, zhCN);
+
+            string zhTW = @"7z\\Lang\\zh-tw.txt";
+            zhTWPath = Path.Combine(workPath, zhTW);
+
+            string rar = @"rar";
+            rarPath = Path.Combine(workPath, rar);
 
             string sevenZXADll = @"rar\\7zxa.dll";
             sevenZXADllPath = Path.Combine(workPath, sevenZXADll);
@@ -119,8 +149,8 @@ namespace Auto7z_GUI
             string default64SFX = @"rar\\Default64.SFX";
             default64SFXPath = Path.Combine(workPath, default64SFX);
 
-            string rar = @"rar\\Rar.exe";
-            rarPath = Path.Combine(workPath, rar);
+            string rarEXE = @"rar\\Rar.exe";
+            rarEXEPath = Path.Combine(workPath, rarEXE);
 
             string rarRegKey = @"rar\\rarreg.key";
             rarRegKeyPath = Path.Combine(workPath, rarRegKey);
@@ -154,6 +184,16 @@ namespace Auto7z_GUI
             DEFAULT_AUTOSAVE();
             DEFAULT_ZSTD();
 
+            if (!CHECK_SEVENZ_EXIST() || !CHECK_LANG_EXIST() || !CHECK_RAR_EXIST())
+            {
+                CREATE_COMPONENTS();
+                if (!isCreate7zFolder || !isCreateLangFolder || !isCreateRarFolder)
+                {
+                    this.Close();
+                    return;
+                }
+            }
+
             if (args != null && args.Length > 0 && args.All(arg => !string.IsNullOrEmpty(arg)))
             {
                 if (!isMultipleFiles)
@@ -170,14 +210,21 @@ namespace Auto7z_GUI
                         {
                             if (!CHECK_SEVENZ_EXIST())
                             {
-                                ERROR_SEVENZ_EXIST();
-                                this.Close();
-                                return;
+                                CREATE_COMPONENTS();
+                                if (!isCreate7zFolder)
+                                {
+                                    ERROR_SEVENZ_EXIST();
+                                    return;
+                                }
                             }
 
-                            if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
+                            if (!CHECK_LANG_EXIST())
                             {
-                                WARNING_LANG_EXIST();
+                                CREATE_COMPONENTS();
+                                if (!isCreateLangFolder)
+                                {
+                                    WARNING_LANG_EXIST();
+                                }
                             }
 
                             string command = GENERATE_COMMAND();
@@ -207,14 +254,21 @@ namespace Auto7z_GUI
                         {
                             if (!CHECK_SEVENZ_EXIST())
                             {
-                                ERROR_SEVENZ_EXIST();
-                                this.Close();
-                                return;
+                                CREATE_COMPONENTS();
+                                if (!isCreate7zFolder)
+                                {
+                                    ERROR_SEVENZ_EXIST();
+                                    return;
+                                }
                             }
 
-                            if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
+                            if (!CHECK_LANG_EXIST())
                             {
-                                WARNING_LANG_EXIST();
+                                CREATE_COMPONENTS();
+                                if (!isCreateLangFolder)
+                                {
+                                    WARNING_LANG_EXIST();
+                                }
                             }
 
                             string command = GENERATE_COMMAND();
@@ -269,9 +323,12 @@ namespace Auto7z_GUI
                         {
                             if (!CHECK_RAR_EXIST())
                             {
-                                ERROR_RAR_EXIST();
-                                this.Close();
-                                return;
+                                CREATE_COMPONENTS();
+                                if (!isCreate7zFolder)
+                                {
+                                    ERROR_RAR_EXIST();
+                                    return;
+                                }
                             }
 
                             string command = GENERATE_COMMAND();
@@ -321,12 +378,21 @@ namespace Auto7z_GUI
                             {
                                 if (!CHECK_SEVENZ_EXIST())
                                 {
-                                    ERROR_SEVENZ_EXIST();
+                                    CREATE_COMPONENTS();
+                                    if (!isCreate7zFolder)
+                                    {
+                                        ERROR_SEVENZ_EXIST();
+                                        break;
+                                    }
                                 }
 
-                                if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
+                                if (!CHECK_LANG_EXIST())
                                 {
-                                    WARNING_LANG_EXIST();
+                                    CREATE_COMPONENTS();
+                                    if (!isCreateLangFolder)
+                                    {
+                                        WARNING_LANG_EXIST();
+                                    }
                                 }
 
                                 string command = GENERATE_COMMAND();
@@ -353,12 +419,21 @@ namespace Auto7z_GUI
                             {
                                 if (!CHECK_SEVENZ_EXIST())
                                 {
-                                    ERROR_SEVENZ_EXIST();
+                                    CREATE_COMPONENTS();
+                                    if (!isCreate7zFolder)
+                                    {
+                                        ERROR_SEVENZ_EXIST();
+                                        break;
+                                    }
                                 }
 
-                                if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
+                                if (!CHECK_LANG_EXIST())
                                 {
-                                    WARNING_LANG_EXIST();
+                                    CREATE_COMPONENTS();
+                                    if (!isCreateLangFolder)
+                                    {
+                                        WARNING_LANG_EXIST();
+                                    }
                                 }
 
                                 string command = GENERATE_COMMAND();
@@ -410,7 +485,12 @@ namespace Auto7z_GUI
                             {
                                 if (!CHECK_RAR_EXIST())
                                 {
-                                    ERROR_RAR_EXIST();
+                                    CREATE_COMPONENTS();
+                                    if (!isCreate7zFolder)
+                                    {
+                                        ERROR_RAR_EXIST();
+                                        break;
+                                    }
                                 }
 
                                 string command = GENERATE_COMMAND();
@@ -446,6 +526,28 @@ namespace Auto7z_GUI
             string assemblyPath = Assembly.GetExecutingAssembly().Location;
             // 返回路径
             return Path.GetDirectoryName(assemblyPath);
+        }
+
+        private bool CHECK_WORK_PATH_WRITABLE(string path, out Exception ex)
+        {
+            ex = null; // 初始化异常为 null
+            try
+            {
+                string testFilePath = Path.Combine(path, "test");
+                using (FileStream testFile = File.Create(testFilePath)) { }
+                File.Delete(testFilePath);
+                return true;
+            }
+            catch (UnauthorizedAccessException unauthorizedEx)
+            {
+                ex = unauthorizedEx;
+                return false;
+            }
+            catch (Exception otherEx)
+            {
+                ex = otherEx;
+                return false;
+            }
         }
 
         private void InitializeLanguageTexts()
@@ -509,6 +611,261 @@ namespace Auto7z_GUI
             SET_COMPONENT_POSITION();
         }
 
+        private void CREATE_COMPONENTS()
+        {
+            if (!Directory.Exists(sevenZPath))
+            {
+                isCreate7zFolder = CREATE_RESOURCE_FOLDER(sevenZPath);
+            }
+
+            if (Directory.Exists(sevenZPath))
+            {
+                CHECK_FOLDER_LEGAL(sevenZPath);
+
+                if (!File.Exists(sevenZEXEPath))
+                {
+                    CREATE_SEVENZ_EXE();
+                }
+
+                if (!File.Exists(sevenZDllPath))
+                {
+                    CREATE_SEVENZ_DLL();
+                }
+
+                if (!Directory.Exists(langPath))
+                {
+                    isCreateLangFolder = CREATE_RESOURCE_FOLDER(langPath);
+                }
+
+                if (Directory.Exists(langPath))
+                {
+                    CHECK_FOLDER_LEGAL(langPath);
+
+                    if (!File.Exists(zhCNPath))
+                    {
+                        CREATE_ZHCN_TXT();
+                    }
+
+                    if (!File.Exists(zhTWPath))
+                    {
+                        CREATE_ZHTW_TXT();
+                    }
+                }
+            }
+
+            if (!Directory.Exists(rarPath))
+            {
+                isCreateRarFolder = CREATE_RESOURCE_FOLDER(rarPath);
+            }
+
+            if (Directory.Exists(rarPath))
+            {
+                CHECK_FOLDER_LEGAL(rarPath);
+
+                if (!File.Exists(sevenZXADllPath))
+                {
+                    CREATE_SEVENZ_XA_DLL();
+                }
+
+                if (!File.Exists(defaultSFXPath))
+                {
+                    CREATE_DEFAULT_SFX();
+                }
+
+                if (!File.Exists(default64SFXPath))
+                {
+                    CREATE_DEFAULT_64_SFX();
+                }
+
+                if (!File.Exists(rarEXEPath))
+                {
+                    CREATE_RAR_EXE();
+                }
+
+                if (!File.Exists(rarRegKeyPath))
+                {
+                    CREATE_RARREG_KEY();
+                }
+
+                if (!File.Exists(winConSFXPath))
+                {
+                    CREATE_WINCON_SFX();
+                }
+
+                if (!File.Exists(winCon64SFXPath))
+                {
+                    CREATE_WINCON_64_SFX();
+                }
+
+                if (!File.Exists(winRarPath))
+                {
+                    CREATE_WINRAR_EXE();
+                }
+
+                if (!File.Exists(zipSFXPath))
+                {
+                    CREATE_ZIP_SFX();
+                }
+
+                if (!File.Exists(zip64SFXPath))
+                {
+                    CREATE_ZIP_64_SFX();
+                }
+            }
+        }
+
+        private void EXTRACT_RESOURCE(string resourceName, string outputPath)
+        {
+            using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
+            {
+                if (stream == null)
+                {
+                    ERROR_RESOURCE_EXIST(resourceName);
+                    return;
+                }
+
+                using (FileStream fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
+                {
+                    stream.CopyTo(fileStream);
+                }
+            }
+        }
+
+        private bool CREATE_RESOURCE_FOLDER(string newFolderPath)
+        {
+            if (!Directory.Exists(newFolderPath))
+            {
+                try
+                {
+                    Directory.CreateDirectory(newFolderPath);
+                    return true;
+                }
+
+                catch (Exception ex)
+                {
+                    ERROR_CREATE_FOLDER_FAILED(ex);
+                    return false;
+                }
+            }
+
+            else
+            {
+                return true;
+            }
+        }
+
+        private void CREATE_SEVENZ_EXE()
+        {
+            string resourceName = "Auto7z_GUI.Resource.sz.7z.exe";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.sz.", "");//将原始嵌入资源的文件名中的命名空间前缀替换为空字符串
+            string outputPath = Path.Combine(sevenZPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_SEVENZ_DLL()
+        {
+            string resourceName = "Auto7z_GUI.Resource.sz.7z.dll";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.sz.", "");
+            string outputPath = Path.Combine(sevenZPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_ZHCN_TXT()
+        {
+            string resourceName = "Auto7z_GUI.Resource.sz.Lang.zh-cn.txt";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.sz.Lang.", "");
+            string outputPath = Path.Combine(langPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_ZHTW_TXT()
+        {
+            string resourceName = "Auto7z_GUI.Resource.sz.Lang.zh-tw.txt";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.sz.Lang.", "");
+            string outputPath = Path.Combine(langPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_SEVENZ_XA_DLL()
+        {
+            string resourceName = "Auto7z_GUI.Resource.rar.7zxa.dll";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.rar.", "");
+            string outputPath = Path.Combine(rarPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_DEFAULT_SFX()
+        {
+            string resourceName = "Auto7z_GUI.Resource.rar.Default.SFX";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.rar.", "");
+            string outputPath = Path.Combine(rarPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_DEFAULT_64_SFX()
+        {
+            string resourceName = "Auto7z_GUI.Resource.rar.Default64.SFX";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.rar.", "");
+            string outputPath = Path.Combine(rarPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_RAR_EXE()
+        {
+            string resourceName = "Auto7z_GUI.Resource.rar.Rar.exe";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.rar.", "");
+            string outputPath = Path.Combine(rarPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_RARREG_KEY()
+        {
+            string resourceName = "Auto7z_GUI.Resource.rar.rarreg.key";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.rar.", "");
+            string outputPath = Path.Combine(rarPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_WINCON_SFX()
+        {
+            string resourceName = "Auto7z_GUI.Resource.rar.WinCon.SFX";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.rar.", "");
+            string outputPath = Path.Combine(rarPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_WINCON_64_SFX()
+        {
+            string resourceName = "Auto7z_GUI.Resource.rar.WinCon64.SFX";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.rar.", "");
+            string outputPath = Path.Combine(rarPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_WINRAR_EXE()
+        {
+            string resourceName = "Auto7z_GUI.Resource.rar.WinRAR.exe";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.rar.", "");
+            string outputPath = Path.Combine(rarPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_ZIP_SFX()
+        {
+            string resourceName = "Auto7z_GUI.Resource.rar.Zip.SFX";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.rar.", "");
+            string outputPath = Path.Combine(rarPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
+        private void CREATE_ZIP_64_SFX()
+        {
+            string resourceName = "Auto7z_GUI.Resource.rar.Zip64.SFX";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.rar.", "");
+            string outputPath = Path.Combine(rarPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
         private bool EXECUTE_COMMAND_BOOL(string command)
         {
             var process = new Process();
@@ -556,7 +913,7 @@ namespace Auto7z_GUI
 
             if (format == "7z" || format == "zip")
             {
-                string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
+                string command = $"@\"{sevenZEXEPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
 
                 // 添加分卷选项
                 if (size > targetSize && targetSize > 0)
@@ -592,7 +949,7 @@ namespace Auto7z_GUI
 
             if (format == "tar")
             {
-                string command = $"@\"{sevenZPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
+                string command = $"@\"{sevenZEXEPath}\" a -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{filePath}\"";
 
                 if (size > targetSize && targetSize > 0 && !CheckBoxZstd.Checked)
                 {
@@ -641,7 +998,7 @@ namespace Auto7z_GUI
             bool isFile = File.Exists(filePath);
             long size = isFile ? fileSize : folderSize; // 确定使用文件大小还是文件夹大小
 
-            string command = $"@\"{sevenZPath}\" a -tzstd \"{newFolderPath}\\{fileName}.tar.zst\" \"{newFolderPath}\\{fileName}.tar\"";
+            string command = $"@\"{sevenZEXEPath}\" a -tzstd \"{newFolderPath}\\{fileName}.tar.zst\" \"{newFolderPath}\\{fileName}.tar\"";
 
             // 添加分卷选项
             if (size > targetSize && targetSize > 0 && !CheckBoxDisableSplit.Checked)
@@ -925,6 +1282,21 @@ namespace Auto7z_GUI
             }
         }
 
+        private void CHECK_FOLDER_LEGAL(string directoryPath)
+        {
+            DirectoryInfo directory = new DirectoryInfo(directoryPath);
+
+            if (directory.Exists && (directory.Attributes & FileAttributes.Hidden) == FileAttributes.Hidden)
+            {
+                directory.Attributes = FileAttributes.Normal;
+            }
+
+            if (directory.Exists && (directory.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
+            {
+                directory.Attributes = FileAttributes.Normal;
+            }
+        }
+
         private void CHECK_XML_LEGAL(string configFilePath)
         {
             FileInfo configFile = new FileInfo(configFilePath);
@@ -947,18 +1319,18 @@ namespace Auto7z_GUI
 
         private bool CHECK_SEVENZ_EXIST()
         {
-            return File.Exists(sevenZPath) && File.Exists(sevenZDllPath);
+            return File.Exists(sevenZEXEPath) && File.Exists(sevenZDllPath);
         }
 
         private bool CHECK_LANG_EXIST()
         {
-            return Directory.Exists(langPath);
+            return Directory.Exists(langPath) && File.Exists(zhCNPath) && File.Exists(zhTWPath);
         }
 
         private bool CHECK_RAR_EXIST()
         {
             return File.Exists(sevenZXADllPath) && File.Exists(defaultSFXPath) && File.Exists(default64SFXPath)
-                && File.Exists(rarPath) && File.Exists(rarRegKeyPath) && File.Exists(winConSFXPath)
+                && File.Exists(rarEXEPath) && File.Exists(rarRegKeyPath) && File.Exists(winConSFXPath)
                 && File.Exists(winCon64SFXPath) && File.Exists(winRarPath) && File.Exists(zipSFXPath) && File.Exists(zip64SFXPath);
         }
 
@@ -968,7 +1340,7 @@ namespace Auto7z_GUI
             {
                 try
                 {
-                    File.Delete(configFilePath);
+                    File.WriteAllText(configFilePath, string.Empty);
                 }
 
                 catch (Exception ex)
@@ -993,12 +1365,13 @@ namespace Auto7z_GUI
                 // 其他语言...
             };
 
+            XElement defaultConfig;
+
             if (supportedLanguages.Contains(currentCulture.Name))
             {
                 if (currentLanguage != null)
                 {
-                    // 创建默认的 XML 结构
-                    XElement defaultConfig = new XElement("Configuration",
+                    defaultConfig = new XElement("Configuration",
                         new XElement("Language", $"{currentLanguage}"),
                         new XElement("ScreenWidth", "0"),
                         new XElement("ScreenHeight", "0"),
@@ -1015,14 +1388,11 @@ namespace Auto7z_GUI
                         new XElement("RarUsageCount", "0"),
                         new XElement("Auto7zUsageCount", "0")
                     );
-
-                    defaultConfig.Save(configFilePath);
                 }
 
                 else
                 {
-                    // 创建默认的 XML 结构
-                    XElement defaultConfig = new XElement("Configuration",
+                    defaultConfig = new XElement("Configuration",
                         new XElement("Language", $"{currentCulture.Name}"),
                         new XElement("ScreenWidth", "0"),
                         new XElement("ScreenHeight", "0"),
@@ -1039,15 +1409,12 @@ namespace Auto7z_GUI
                         new XElement("RarUsageCount", "0"),
                         new XElement("Auto7zUsageCount", "0")
                     );
-
-                    defaultConfig.Save(configFilePath);
                 }
             }
 
             else
             {
-                // 创建默认的 XML 结构
-                XElement defaultConfig = new XElement("Configuration",
+                defaultConfig = new XElement("Configuration",
                     new XElement("Language", "en-US"),
                     new XElement("ScreenWidth", "0"),
                     new XElement("ScreenHeight", "0"),
@@ -1064,8 +1431,15 @@ namespace Auto7z_GUI
                     new XElement("RarUsageCount", "0"),
                     new XElement("Auto7zUsageCount", "0")
                 );
+            }
 
+            try
+            {
                 defaultConfig.Save(configFilePath);
+            }
+            catch (Exception ex)
+            {
+                ERROR_EXCEPTION_MESSAGE(ex);
             }
         }
 
@@ -2183,6 +2557,59 @@ namespace Auto7z_GUI
             }
         }
 
+        private void ERROR_NO_PREMISSION(string directoryPath, Exception error)
+        {
+            var currentCulture = CultureInfo.CurrentUICulture;
+
+            // 创建一个示例词典，包含支持的语言
+            var supportedLanguages = new HashSet<string>
+            {
+                "zh-CN", // 中文 (简体)
+                "zh-TW", // 中文 (繁体)
+                "en-US", // 英语 (美国)
+                // 其他语言...
+            };
+
+            if (supportedLanguages.Contains(currentCulture.Name))
+            {
+                currentLanguage = currentCulture.Name;
+
+                switch (currentLanguage)
+                {
+                    case "zh-CN":
+                        MessageBox.Show($"应用程序没有在{directoryPath}内运行的权限，错误为: {error.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                    case "zh-TW":
+                        MessageBox.Show($"應用程式沒有在{directoryPath}内運行的權限，錯誤為: {error.Message}", "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                    case "en-US":
+                        MessageBox.Show($"Permission denied to run the application in {directoryPath},error message is: {error.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        break;
+                }
+            }
+
+            else
+            {
+                MessageBox.Show($"Permission denied to run the application in {directoryPath},error message is: {error.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void ERROR_RESOURCE_EXIST(string resourceName)
+        {
+            switch (currentLanguage)
+            {
+                case "zh-CN":
+                    MessageBox.Show("没有找到资源: " + resourceName, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "zh-TW":
+                    MessageBox.Show("沒有找到資源: " + resourceName, "錯誤", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+                case "en-US":
+                    MessageBox.Show("Resource not found: " + resourceName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    break;
+            }
+        }
+
         private void ERROR_EMPTY_PATH()
         {
             switch (currentLanguage)
@@ -2532,12 +2959,21 @@ namespace Auto7z_GUI
                         {
                             if (!CHECK_SEVENZ_EXIST())
                             {
-                                ERROR_SEVENZ_EXIST();
+                                CREATE_COMPONENTS();
+                                if (!isCreate7zFolder)
+                                {
+                                    ERROR_SEVENZ_EXIST();
+                                    return;
+                                }
                             }
 
-                            if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
+                            if (!CHECK_LANG_EXIST())
                             {
-                                WARNING_LANG_EXIST();
+                                CREATE_COMPONENTS();
+                                if (!isCreateLangFolder)
+                                {
+                                    WARNING_LANG_EXIST();
+                                }
                             }
 
                             string command = GENERATE_COMMAND();
@@ -2564,12 +3000,21 @@ namespace Auto7z_GUI
                         {
                             if (!CHECK_SEVENZ_EXIST())
                             {
-                                ERROR_SEVENZ_EXIST();
+                                CREATE_COMPONENTS();
+                                if (!isCreate7zFolder)
+                                {
+                                    ERROR_SEVENZ_EXIST();
+                                    return;
+                                }
                             }
 
-                            if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
+                            if (!CHECK_LANG_EXIST())
                             {
-                                WARNING_LANG_EXIST();
+                                CREATE_COMPONENTS();
+                                if (!isCreateLangFolder)
+                                {
+                                    WARNING_LANG_EXIST();
+                                }
                             }
 
                             string command = GENERATE_COMMAND();
@@ -2621,7 +3066,12 @@ namespace Auto7z_GUI
                         {
                             if (!CHECK_RAR_EXIST())
                             {
-                                ERROR_RAR_EXIST();
+                                CREATE_COMPONENTS();
+                                if (!isCreate7zFolder)
+                                {
+                                    ERROR_RAR_EXIST();
+                                    return;
+                                }
                             }
 
                             string command = GENERATE_COMMAND();
@@ -2667,13 +3117,21 @@ namespace Auto7z_GUI
                             {
                                 if (!CHECK_SEVENZ_EXIST())
                                 {
-                                    ERROR_SEVENZ_EXIST();
-                                    break;
+                                    CREATE_COMPONENTS();
+                                    if (!isCreate7zFolder)
+                                    {
+                                        ERROR_SEVENZ_EXIST();
+                                        break;
+                                    }
                                 }
 
-                                if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
+                                if (!CHECK_LANG_EXIST())
                                 {
-                                    WARNING_LANG_EXIST();
+                                    CREATE_COMPONENTS();
+                                    if (!isCreateLangFolder)
+                                    {
+                                        WARNING_LANG_EXIST();
+                                    }
                                 }
 
                                 string command = GENERATE_COMMAND();
@@ -2700,13 +3158,21 @@ namespace Auto7z_GUI
                             {
                                 if (!CHECK_SEVENZ_EXIST())
                                 {
-                                    ERROR_SEVENZ_EXIST();
-                                    break;
+                                    CREATE_COMPONENTS();
+                                    if (!isCreate7zFolder)
+                                    {
+                                        ERROR_SEVENZ_EXIST();
+                                        break;
+                                    }
                                 }
 
-                                if (!CHECK_LANG_EXIST() && sevenZUsageCount < 1)
+                                if (!CHECK_LANG_EXIST())
                                 {
-                                    WARNING_LANG_EXIST();
+                                    CREATE_COMPONENTS();
+                                    if (!isCreateLangFolder)
+                                    {
+                                        WARNING_LANG_EXIST();
+                                    }
                                 }
 
                                 string command = GENERATE_COMMAND();
@@ -2758,7 +3224,12 @@ namespace Auto7z_GUI
                             {
                                 if (!CHECK_RAR_EXIST())
                                 {
-                                    ERROR_RAR_EXIST();
+                                    CREATE_COMPONENTS();
+                                    if (!isCreate7zFolder)
+                                    {
+                                        ERROR_RAR_EXIST();
+                                        break;
+                                    }
                                 }
 
                                 string command = GENERATE_COMMAND();
