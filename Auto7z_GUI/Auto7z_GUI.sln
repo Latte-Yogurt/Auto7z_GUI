@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.35130.168
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Auto7z_GUI", "Auto7z_GUI\Auto7z_GUI.csproj", "{AE79C3EE-5C83-45DD-8060-37970E7BE046}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{42F6533F-964B-405F-B179-349C35271181}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AE79C3EE-5C83-45DD-8060-37970E7BE046}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE79C3EE-5C83-45DD-8060-37970E7BE046}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE79C3EE-5C83-45DD-8060-37970E7BE046}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE79C3EE-5C83-45DD-8060-37970E7BE046}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F178562F-AE84-4385-89DE-E13D0296DB1D}
+	EndGlobalSection
+EndGlobal
