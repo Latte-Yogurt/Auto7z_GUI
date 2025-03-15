@@ -27,7 +27,6 @@ namespace Auto7z_GUI
         private bool isCreateAuto7zFolder = true;
         private bool isCreate7zFolder = true;
         private bool isCreateLangFolder = true;
-        private bool isCreateRarFolder = true;
         private bool packedOneFile = false;
         private string xmlPath;
         private bool isHandleSeparately;
@@ -42,6 +41,7 @@ namespace Auto7z_GUI
         private string langPath;
         private string zhCNPath;
         private string zhTWPath;
+        private string md5CalculaterPath;
         public static string currentLanguage;
         public static float systemScale;
         private int oldScreenWidth;
@@ -53,7 +53,8 @@ namespace Auto7z_GUI
         private string format;
         private string password;
         private bool zstd;
-        private bool disableTarSplit;
+        private bool disableSplit;
+        private bool createMd5;
         private bool autoSave;
         private bool portable;
         private long sevenZUsageCount;
@@ -105,6 +106,14 @@ namespace Auto7z_GUI
 
             if (args != null && args.Length > 0)
             {
+                TASK(args);
+            }
+        }
+
+        private void TASK(string[] args)
+        {
+            if (args != null && args.Length > 0)
+            {
                 if (args.Length > 1)
                 {
                     QUESTION_PACKED_IN_ONE_FILE();
@@ -120,7 +129,7 @@ namespace Auto7z_GUI
             if (!CHECK_AUTO7Z_EXIST() || !CHECK_SEVENZ_EXIST())
             {
                 CREATE_COMPONENTS();
-                if (!isCreateAuto7zFolder || !isCreate7zFolder || !isCreateLangFolder || !isCreateRarFolder)
+                if (!isCreateAuto7zFolder || !isCreate7zFolder || !isCreateLangFolder)
                 {
                     this.Close();
                     return;
@@ -182,9 +191,15 @@ namespace Auto7z_GUI
                             DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                         }
 
+                        if (createMd5 && Directory.Exists(newFolderPath))
+                        {
+                            GENERATE_MD5(md5CalculaterPath, newFolderPath);
+                        }
+
                         ADD_SEVENZ_USAGE_COUNT();
                         DELETE_EXTRACT_RESOURCE();
                         this.Close();
+                        return;
                     }
 
                     if (format == "tar")
@@ -216,7 +231,7 @@ namespace Auto7z_GUI
                             DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                         }
 
-                        if (CheckBoxZstd.Checked)
+                        if (zstd)
                         {
                             string zstdCommand = ZSTD_COMMAND();
                             bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
@@ -225,15 +240,22 @@ namespace Auto7z_GUI
                             {
                                 DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                             }
+
                             else
                             {
                                 DELETE_TEMP_TAR(newFolderPath);
                             }
                         }
 
+                        if (createMd5 && Directory.Exists(newFolderPath))
+                        {
+                            GENERATE_MD5(md5CalculaterPath, newFolderPath);
+                        }
+
                         ADD_SEVENZ_USAGE_COUNT();
                         DELETE_EXTRACT_RESOURCE();
                         this.Close();
+                        return;
                     }
                 }
 
@@ -280,6 +302,11 @@ namespace Auto7z_GUI
                                 DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                             }
 
+                            if (createMd5 && Directory.Exists(newFolderPath))
+                            {
+                                GENERATE_MD5(md5CalculaterPath, newFolderPath);
+                            }
+
                             ADD_SEVENZ_USAGE_COUNT();
                         }
 
@@ -303,7 +330,7 @@ namespace Auto7z_GUI
                                 DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                             }
 
-                            if (CheckBoxZstd.Checked)
+                            if (zstd)
                             {
                                 string zstdCommand = ZSTD_COMMAND();
                                 bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
@@ -318,6 +345,10 @@ namespace Auto7z_GUI
                                 }
                             }
 
+                            if (createMd5 && Directory.Exists(newFolderPath))
+                            {
+                                GENERATE_MD5(md5CalculaterPath, newFolderPath);
+                            }
 
                             ADD_SEVENZ_USAGE_COUNT();
                         }
@@ -325,6 +356,7 @@ namespace Auto7z_GUI
 
                     DELETE_EXTRACT_RESOURCE();
                     this.Close();
+                    return;
                 }
             }
         }
@@ -369,7 +401,9 @@ namespace Auto7z_GUI
                         { "LabelSize","分卷大小：" },
                         { "LabelFormat","生成格式：" },
                         { "LabelPassword","添加密码：" },
-                        { "CheckBoxDisableSplit","禁用分卷"},
+                        { "OptionMenu","选项"},
+                        { "OptionMenuDisableSplit","禁用分卷"},
+                        { "OptionMenuCreateMD5","压缩完成后生成MD5文件"},
                         { "CheckBoxAutoSave","程序关闭时自动保存配置" },
                         { "ButtonConfig","保存配置" }
                     }
@@ -382,7 +416,9 @@ namespace Auto7z_GUI
                         { "LabelSize","分卷大小：" },
                         { "LabelFormat","生成格式：" },
                         { "LabelPassword","添加密碼：" },
-                        { "CheckBoxDisableSplit","禁用分卷"},
+                        { "OptionMenu","選項"},
+                        { "OptionMenuDisableSplit","禁用分卷"},
+                        { "OptionMenuCreateMD5","壓縮完成后生成MD5文件"},
                         { "CheckBoxAutoSave","程式關閉時自動保存配置" },
                         { "ButtonConfig","保存配置" }
                     }
@@ -395,7 +431,9 @@ namespace Auto7z_GUI
                         { "LabelSize","Part Size：" },
                         { "LabelFormat","Generate Format：" },
                         { "LabelPassword","Add Password：" },
-                        { "CheckBoxDisableSplit","Disable split"},
+                        { "OptionMenu","Option"},
+                        { "OptionMenuDisableSplit","Disable Split"},
+                        { "OptionMenuCreateMD5","Generate MD5 file after compression is complete"},
                         { "CheckBoxAutoSave","save config while exit" },
                         { "ButtonConfig","Save Config" }
                     }
@@ -411,7 +449,9 @@ namespace Auto7z_GUI
             LabelSize.Text = languageTexts[currentLanguage]["LabelSize"];
             LabelFormat.Text = languageTexts[currentLanguage]["LabelFormat"];
             LabelPassword.Text = languageTexts[currentLanguage]["LabelPassword"];
-            CheckBoxDisableSplit.Text = languageTexts[currentLanguage]["CheckBoxDisableSplit"];
+            OptionMenu.Text = languageTexts[currentLanguage]["OptionMenu"];
+            OptionMenuDisableSplit.Text = languageTexts[currentLanguage]["OptionMenuDisableSplit"];
+            OptionMenuCreateMD5.Text = languageTexts[currentLanguage]["OptionMenuCreateMD5"];
             CheckBoxAutoSave.Text = languageTexts[currentLanguage]["CheckBoxAutoSave"];
             ButtonConfig.Text = languageTexts[currentLanguage]["ButtonConfig"];
 
@@ -447,6 +487,7 @@ namespace Auto7z_GUI
             langPath = Path.Combine(sevenZPath, "Lang");
             zhCNPath = Path.Combine(langPath, "zh-cn.txt");
             zhTWPath = Path.Combine(langPath, "zh-tw.txt");
+            md5CalculaterPath = Path.Combine(auto7zPath, "MD5Calculater.exe");
         }
 
         private void InitializeConfig()
@@ -455,7 +496,8 @@ namespace Auto7z_GUI
             format = GET_FORMAT(xmlPath);
             password = GET_PASSWORD(xmlPath);
             zstd = GET_ZSTD(xmlPath);
-            disableTarSplit = GET_DISABLE_TAR_SPLIT(xmlPath);
+            disableSplit = GET_DISABLE_SPLIT(xmlPath);
+            createMd5 = GET_CREATE_MD5(xmlPath);
             autoSave = GET_AUTOSAVE(xmlPath);
             portable = GET_PORTABLE(xmlPath);
 
@@ -463,7 +505,8 @@ namespace Auto7z_GUI
             DEFAULT_FORMAT_MENU();
             DEFAULT_PASSWORD_TEXTBOX();
             DEFAULT_ZSTD();
-            DEFAULT_DISABLE_TAR_SPLIT();
+            DEFAULT_OPTION_MENU_DISABLE_SPLIT();
+            DEFAULT_OPTION_MENU_CREATE_MD5();
             DEFAULT_AUTOSAVE();
         }
         #endregion
@@ -479,6 +522,11 @@ namespace Auto7z_GUI
             if (Directory.Exists(auto7zPath))
             {
                 CHECK_FOLDER_LEGAL(auto7zPath);
+
+                if (!File.Exists(md5CalculaterPath))
+                {
+                    CREATE_MD5_CALCULATER_EXE();
+                }
 
                 if (!Directory.Exists(sevenZPath))
                 {
@@ -562,6 +610,14 @@ namespace Auto7z_GUI
             }
         }
 
+        private void CREATE_MD5_CALCULATER_EXE()
+        {
+            string resourceName = "Auto7z_GUI.Resource.MD5Calculater.exe";
+            string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.", "");
+            string outputPath = Path.Combine(auto7zPath, outputFileName);
+            EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+
         private void CREATE_SEVENZ_EXE()
         {
             string resourceName = "Auto7z_GUI.Resource.sevenz.7z.exe";
@@ -592,6 +648,26 @@ namespace Auto7z_GUI
             string outputFileName = resourceName.Replace("Auto7z_GUI.Resource.sevenz.Lang.", "");
             string outputPath = Path.Combine(langPath, outputFileName);
             EXTRACT_RESOURCE(resourceName, outputPath);
+        }
+        #endregion
+
+        #region Generate MD5
+        private void GENERATE_MD5(string md5Exe, string path)
+        {
+            try
+            {
+                var process = new Process();
+                process.StartInfo.FileName = $"\"{md5Exe}\"";
+                process.StartInfo.Arguments = $"\"{path}\"";
+                process.StartInfo.UseShellExecute = true;
+
+                process.Start();
+                process.WaitForExit(); // 等待进程完成
+            }
+            catch (Exception ex)
+            {
+                ERROR_EXCEPTION_MESSAGE(ex);
+            }
         }
         #endregion
 
@@ -816,7 +892,7 @@ namespace Auto7z_GUI
 
         private bool ADD_VOLUME_CONDITION(long size, int targetSize)
         {
-            return size > targetSize && targetSize > 0 && ((format == "tar" && !CheckBoxZstd.Checked) || format == "7z" || format == "zip");
+            return size > targetSize && targetSize > 0 && !OptionMenuDisableSplit.Checked && (format == "tar" && !CheckBoxZstd.Checked);
         }
 
         private bool ADD_PASSWORD_CONDITION()
@@ -851,7 +927,7 @@ namespace Auto7z_GUI
             string command = $"@\"{sevenZExePath}\" a -aoa -tzstd \"{newFolderPath}\\{fileName}.tar.zst\" \"{newFolderPath}\\{fileName}.tar\"";
 
             // 添加分卷选项
-            if (size > targetSize && targetSize > 0 && !CheckBoxDisableSplit.Checked)
+            if (size > targetSize && targetSize > 0 && !OptionMenuDisableSplit.Checked)
             {
                 command += $" -v{targetSize}m";
             }
@@ -1311,7 +1387,8 @@ namespace Auto7z_GUI
                         new XElement("Format", "7z"),
                         new XElement("Password", ""),
                         new XElement("Zstd", "True"),
-                        new XElement("DisableTarSplit", "False"),
+                        new XElement("DisableSplit", "False"),
+                        new XElement("CreateMD5", "True"),
                         new XElement("AutoSave", "True"),
                         new XElement("Portable", "True"),
                         new XElement("SevenZUsageCount", "0")
@@ -1331,7 +1408,8 @@ namespace Auto7z_GUI
                         new XElement("Format", "7z"),
                         new XElement("Password", ""),
                         new XElement("Zstd", "True"),
-                        new XElement("DisableTarSplit", "False"),
+                        new XElement("DisableSplit", "False"),
+                        new XElement("CreateMD5", "True"),
                         new XElement("AutoSave", "True"),
                         new XElement("Portable", "True"),
                         new XElement("SevenZUsageCount", "0")
@@ -1352,7 +1430,8 @@ namespace Auto7z_GUI
                     new XElement("Format", "7z"),
                     new XElement("Password", ""),
                     new XElement("Zstd", "True"),
-                    new XElement("DisableTarSplit", "False"),
+                    new XElement("DisableSplit", "False"),
+                    new XElement("CreateMD5", "True"),
                     new XElement("AutoSave", "True"),
                     new XElement("Portable", "True"),
                     new XElement("SevenZUsageCount", "0")
@@ -2046,7 +2125,7 @@ namespace Auto7z_GUI
             return zstdToBool;
         }
 
-        private bool GET_DISABLE_TAR_SPLIT(string configFilePath)
+        private bool GET_DISABLE_SPLIT(string configFilePath)
         {
             if (!File.Exists(configFilePath))
             {
@@ -2069,7 +2148,7 @@ namespace Auto7z_GUI
                 return false;
             }
 
-            var disableTarSplitNode = xdoc.Descendants("DisableTarSplit").FirstOrDefault();
+            var disableSplitNode = xdoc.Descendants("DisableSplit").FirstOrDefault();
 
             var supportedBool = new HashSet<string>
             {
@@ -2077,9 +2156,9 @@ namespace Auto7z_GUI
                 "False"
             };
 
-            if (disableTarSplitNode == null)
+            if (disableSplitNode == null)
             {
-                XElement newNode = new XElement("DisableTarSplit", "False");
+                XElement newNode = new XElement("DisableSplit", "False");
 
                 xdoc.Root.Add(newNode);
 
@@ -2088,25 +2167,88 @@ namespace Auto7z_GUI
                 return false;
             }
 
-            var disableTarSplitValue = disableTarSplitNode.Value;
-            bool disableTarSplitToBool;
+            var disableSplitValue = disableSplitNode.Value;
+            bool disableSplitToBool;
 
-            if (string.IsNullOrEmpty(disableTarSplitValue))
+            if (string.IsNullOrEmpty(disableSplitValue))
             {
                 return false;
             }
 
-            if (!supportedBool.Contains(disableTarSplitValue))
+            if (!supportedBool.Contains(disableSplitValue))
             {
                 return false;
             }
 
-            if (!bool.TryParse(disableTarSplitValue, out disableTarSplitToBool))
+            if (!bool.TryParse(disableSplitValue, out disableSplitToBool))
             {
                 return false;
             }
 
-            return disableTarSplitToBool;
+            return disableSplitToBool;
+        }
+
+        private bool GET_CREATE_MD5(string configFilePath)
+        {
+            if (!File.Exists(configFilePath))
+            {
+                CREATE_DEFAULT_CONFIG(configFilePath);
+            }
+
+            XDocument xdoc;
+
+            try
+            {
+                // 加载 XML 文档
+                xdoc = XDocument.Load(configFilePath);
+            }
+
+            catch (XmlException)
+            {
+                // 如果加载失败，创建新的默认配置文件并返回默认值
+                CREATE_DEFAULT_CONFIG(configFilePath);
+
+                return true;
+            }
+
+            var createMd5Node = xdoc.Descendants("CreateMD5").FirstOrDefault();
+
+            var supportedBool = new HashSet<string>
+            {
+                "True",
+                "False"
+            };
+
+            if (createMd5Node == null)
+            {
+                XElement newNode = new XElement("CreateMD5", "True");
+
+                xdoc.Root.Add(newNode);
+
+                xdoc.Save(configFilePath);
+
+                return true;
+            }
+
+            var createMd5Value = createMd5Node.Value;
+            bool createMd5ToBool;
+
+            if (string.IsNullOrEmpty(createMd5Value))
+            {
+                return true;
+            }
+
+            if (!supportedBool.Contains(createMd5Value))
+            {
+                return true;
+            }
+
+            if (!bool.TryParse(createMd5Value, out createMd5ToBool))
+            {
+                return true;
+            }
+
+            return createMd5ToBool;
         }
 
         private bool GET_AUTOSAVE(string configFilePath)
@@ -2337,44 +2479,24 @@ namespace Auto7z_GUI
             }
         }
 
-        private void DEFAULT_ZSTD()
+        private void DEFAULT_OPTION_MENU_DISABLE_SPLIT()
         {
-            if (zstd && format == "tar")
-            {
-                CheckBoxZstd.Checked = true;
-            }
-
-            else
-            {
-                CheckBoxZstd.Checked = false;
-                CheckBoxDisableSplit.Visible = false;
-            }
+            OptionMenuDisableSplit.Checked = disableSplit;
         }
 
-        private void DEFAULT_DISABLE_TAR_SPLIT()
+        private void DEFAULT_OPTION_MENU_CREATE_MD5()
         {
-            if (disableTarSplit && zstd)
-            {
-                CheckBoxDisableSplit.Checked = true;
-            }
+            OptionMenuCreateMD5.Checked = createMd5;
+        }
 
-            else
-            {
-                CheckBoxDisableSplit.Checked = false;
-            }
+        private void DEFAULT_ZSTD()
+        {
+            CheckBoxZstd.Checked = zstd;
         }
 
         private void DEFAULT_AUTOSAVE()
         {
-            if (autoSave)
-            {
-                CheckBoxAutoSave.Checked = true;
-            }
-
-            else
-            {
-                CheckBoxAutoSave.Checked = false;
-            }
+            CheckBoxAutoSave.Checked = autoSave;
         }
         #endregion
 
@@ -2393,7 +2515,8 @@ namespace Auto7z_GUI
             UPDATE_CONFIG($"{xmlPath}", "Format", $"{format}");
             UPDATE_CONFIG($"{xmlPath}", "Password", $"{password}");
             UPDATE_CONFIG($"{xmlPath}", "Zstd", $"{zstd}");
-            UPDATE_CONFIG($"{xmlPath}", "DisableTarSplit", $"{disableTarSplit}");
+            UPDATE_CONFIG($"{xmlPath}", "DisableSplit", $"{disableSplit}");
+            UPDATE_CONFIG($"{xmlPath}", "CreateMD5", $"{createMd5}");
             UPDATE_CONFIG($"{xmlPath}", "AutoSave", $"{autoSave}");
             UPDATE_CONFIG($"{xmlPath}", "SevenZUsageCount", $"{sevenZUsageCount}");
         }
@@ -2724,7 +2847,6 @@ namespace Auto7z_GUI
             TextBoxPassword.Location = new Point(MainPanel.Width / 2 - ComboBoxFormat.Width / 2 + LabelFormat.Width / 2 - (int)(20.0f * systemScale), MainPanel.Height / 2 - ComboBoxFormat.Height / 2 + this.Height / 6);
 
             CheckBoxAutoSave.Location = new Point((int)(20.0f * systemScale), MainPanel.Height - CheckBoxAutoSave.Height - (int)(15.0f * systemScale));
-            CheckBoxDisableSplit.Location = new Point((int)(20.0f * systemScale), MainPanel.Height - CheckBoxDisableSplit.Height - (int)(15.0f * systemScale) - (int)(25.0f * systemScale));
             ButtonConfig.Location = new Point(MainPanel.Width - ButtonConfig.Width - (int)(10.0f * systemScale), MainPanel.Height - ButtonConfig.Height - (int)(10.0f * systemScale));
         }
 
@@ -2775,45 +2897,123 @@ namespace Auto7z_GUI
         private void CHECKBOX_ZSTD_CHECKED_CHANGED(object sender, EventArgs e)
         {
             bool isZstd = CheckBoxZstd.Checked;
-            bool isDisable = CheckBoxDisableSplit.Checked;
 
             if (isZstd)
             {
                 zstd = true;
-                CheckBoxDisableSplit.Visible = true;
-
-                if (isDisable)
-                {
-                    TextBoxSize.Enabled = false;
-                }
             }
 
             else
             {
                 zstd = false;
-                CheckBoxDisableSplit.Visible = false;
-                TextBoxSize.Enabled = true;
             }
         }
 
-        private void CHECKBOX_TARSPLIT_CHECKED_CHANGED(object sender,EventArgs e)
+        private void OPTION_MENU_DISABLE_SPLIT_CHECKED_CHANGED(object sender, EventArgs e)
         {
-            bool isDisable = CheckBoxDisableSplit.Checked;
+            var assembly = Assembly.GetExecutingAssembly();
+            var checkedIconName = "Auto7z_GUI.Resource.icon.Checked.png";
+            var unCheckedIconName = "Auto7z_GUI.Resource.icon.Null.png";
+
+            bool isDisable = OptionMenuDisableSplit.Checked;
 
             if (isDisable)
             {
-                disableTarSplit = true;
-
-                if (format == "tar")
+                using (Stream stream = assembly.GetManifestResourceStream(checkedIconName))
                 {
-                    TextBoxSize.Enabled = false;
+                    if (stream != null)
+                    {
+                        OptionMenuDisableSplit.Image = Image.FromStream(stream);
+                    }
+                    else
+                    {
+                        ERROR_RESOURCE_EXIST(checkedIconName);
+                    }
                 }
+
+                disableSplit = true;
+                TextBoxSize.Enabled = false;
             }
 
             else
             {
-                disableTarSplit = false;
+                using (Stream stream = assembly.GetManifestResourceStream(unCheckedIconName))
+                {
+                    if (stream != null)
+                    {
+                        OptionMenuDisableSplit.Image = Image.FromStream(stream);
+                    }
+                    else
+                    {
+                        ERROR_RESOURCE_EXIST(unCheckedIconName);
+                    }
+                }
+
+                disableSplit = false;
                 TextBoxSize.Enabled = true;
+            }
+        }
+
+        private void OPTION_MENU_DISABLE_SPLIT_CLICK(object sender, EventArgs e)
+        {
+            ToolStripMenuItem disableSplit = sender as ToolStripMenuItem;
+
+            if (disableSplit != null)
+            {
+                disableSplit.Checked = !disableSplit.Checked;
+            }
+        }
+
+        private void OPTION_MENU_CREATE_MD5_CHECKED_CHANGED(object sender, EventArgs e)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var checkedIconName = "Auto7z_GUI.Resource.icon.Checked.png";
+            var unCheckedIconName = "Auto7z_GUI.Resource.icon.Null.png";
+
+            bool isCreateMd5 = OptionMenuCreateMD5.Checked;
+
+            if (isCreateMd5)
+            {
+                using (Stream stream = assembly.GetManifestResourceStream(checkedIconName))
+                {
+                    if (stream != null)
+                    {
+                        OptionMenuCreateMD5.Image = Image.FromStream(stream);
+                    }
+                    else
+                    {
+                        ERROR_RESOURCE_EXIST(checkedIconName);
+                    }
+                }
+
+                createMd5 = true;
+            }
+
+            else
+            {
+                using (Stream stream = assembly.GetManifestResourceStream(unCheckedIconName))
+                {
+                    if (stream != null)
+                    {
+                        OptionMenuCreateMD5.Image = Image.FromStream(stream);
+                    }
+                    else
+                    {
+                        ERROR_RESOURCE_EXIST(unCheckedIconName);
+                    }
+                }
+
+                createMd5 = false;
+            }
+        }
+
+        private void OPTION_MENU_CREATE_MD5_CLICK(object sender, EventArgs e)
+        {
+            ToolStripMenuItem createMd5 = sender as ToolStripMenuItem;
+
+            if (createMd5 != null)
+            {
+                createMd5.Checked = !createMd5.Checked;
             }
         }
 
@@ -2828,24 +3028,12 @@ namespace Auto7z_GUI
                 {
                     CheckBoxZstd.Checked = true;
                 }
-
-                if (CheckBoxZstd.Checked)
-                {
-                    CheckBoxDisableSplit.Visible = true;
-
-                    if (CheckBoxDisableSplit.Checked)
-                    {
-                        TextBoxSize.Enabled = false;
-                    }
-                }
             }
 
             else
             {
                 CheckBoxZstd.Visible = false;
-                CheckBoxDisableSplit.Visible = false;
                 TextBoxPassword.Enabled = true;
-                TextBoxSize.Enabled = true;
             }
         }
 
@@ -2994,6 +3182,11 @@ namespace Auto7z_GUI
                             DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                         }
 
+                        if (createMd5 && Directory.Exists(newFolderPath))
+                        {
+                            await Task.Run(() => GENERATE_MD5(md5CalculaterPath, newFolderPath));
+                        }
+
                         PIN_MAINFORM();
                         ADD_SEVENZ_USAGE_COUNT();
                     }
@@ -3029,7 +3222,7 @@ namespace Auto7z_GUI
                         if (CheckBoxZstd.Checked)
                         {
                             string zstdCommand = ZSTD_COMMAND();
-                            bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
+                            bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
 
                             if (!zstdFinished)
                             {
@@ -3040,6 +3233,11 @@ namespace Auto7z_GUI
                             {
                                 DELETE_TEMP_TAR(newFolderPath);
                             }
+                        }
+
+                        if (createMd5 && Directory.Exists(newFolderPath))
+                        {
+                            await Task.Run(() => GENERATE_MD5(md5CalculaterPath, newFolderPath));
                         }
 
                         PIN_MAINFORM();
@@ -3090,6 +3288,11 @@ namespace Auto7z_GUI
                                 DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
                             }
 
+                            if (createMd5 && Directory.Exists(newFolderPath))
+                            {
+                                await Task.Run(() => GENERATE_MD5(md5CalculaterPath, newFolderPath));
+                            }
+
                             ADD_SEVENZ_USAGE_COUNT();
                         }
 
@@ -3116,7 +3319,7 @@ namespace Auto7z_GUI
                             if (CheckBoxZstd.Checked)
                             {
                                 string zstdCommand = ZSTD_COMMAND();
-                                bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
+                                bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
 
                                 if (!zstdFinished)
                                 {
@@ -3126,6 +3329,11 @@ namespace Auto7z_GUI
                                 {
                                     DELETE_TEMP_TAR(newFolderPath);
                                 }
+                            }
+
+                            if (createMd5 && Directory.Exists(newFolderPath))
+                            {
+                                await Task.Run(() => GENERATE_MD5(md5CalculaterPath, newFolderPath));
                             }
 
                             ADD_SEVENZ_USAGE_COUNT();
