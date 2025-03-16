@@ -108,6 +108,7 @@ namespace AddList
                     {
                         key.SetValue("MUIVerb", "Auto7z");
                         key.SetValue("Icon", exePath);
+                        key.SetValue("MultiSelectModel", "Single");
 
                         using (RegistryKey commandKey = key.CreateSubKey("command"))
                         {
