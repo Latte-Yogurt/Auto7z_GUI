@@ -45,9 +45,11 @@ namespace Auto7z_GUI
             this.LanguageMenuSelectzhCN = new System.Windows.Forms.ToolStripMenuItem();
             this.LanguageMenuSelectzhTW = new System.Windows.Forms.ToolStripMenuItem();
             this.LanguageMenuSelectenUS = new System.Windows.Forms.ToolStripMenuItem();
+            this.OptionMenu = new System.Windows.Forms.ToolStripMenuItem();
+            this.OptionMenuDisableSplit = new System.Windows.Forms.ToolStripMenuItem();
+            this.OptionMenuCreateMD5 = new System.Windows.Forms.ToolStripMenuItem();
             this.AboutMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.AboutMenuAbout = new System.Windows.Forms.ToolStripMenuItem();
-            this.CheckBoxDisableSplit = new System.Windows.Forms.CheckBox();
             this.ButtonConfig = new System.Windows.Forms.Button();
             this.CheckBoxAutoSave = new System.Windows.Forms.CheckBox();
             this.MainPanel.SuspendLayout();
@@ -65,7 +67,6 @@ namespace Auto7z_GUI
             this.MainPanel.Controls.Add(this.TextBoxSize);
             this.MainPanel.Controls.Add(this.LabelSize);
             this.MainPanel.Controls.Add(this.MenuStrip);
-            this.MainPanel.Controls.Add(this.CheckBoxDisableSplit);
             this.MainPanel.Controls.Add(this.ButtonConfig);
             this.MainPanel.Controls.Add(this.CheckBoxAutoSave);
             this.MainPanel.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -151,9 +152,11 @@ namespace Auto7z_GUI
             // MenuStrip
             // 
             this.MenuStrip.BackColor = System.Drawing.SystemColors.ControlLightLight;
+            this.MenuStrip.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
             this.MenuStrip.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.MenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.LanguageMenu,
+            this.OptionMenu,
             this.AboutMenu});
             this.MenuStrip.Location = new System.Drawing.Point(0, 0);
             this.MenuStrip.Name = "MenuStrip";
@@ -200,6 +203,31 @@ namespace Auto7z_GUI
             this.LanguageMenuSelectenUS.Text = "English";
             this.LanguageMenuSelectenUS.Click += new System.EventHandler(this.LANGUAGE_MENU_SELECT_enUS_CLICK);
             // 
+            // OptionMenu
+            // 
+            this.OptionMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.OptionMenuDisableSplit,
+            this.OptionMenuCreateMD5});
+            this.OptionMenu.Name = "OptionMenu";
+            this.OptionMenu.Size = new System.Drawing.Size(62, 28);
+            this.OptionMenu.Text = "选项";
+            // 
+            // OptionMenuDisableSplit
+            // 
+            this.OptionMenuDisableSplit.Name = "OptionMenuDisableSplit";
+            this.OptionMenuDisableSplit.Size = new System.Drawing.Size(315, 34);
+            this.OptionMenuDisableSplit.Text = "禁用分卷";
+            this.OptionMenuDisableSplit.CheckedChanged += new System.EventHandler(this.OPTION_MENU_DISABLE_SPLIT_CHECKED_CHANGED);
+            this.OptionMenuDisableSplit.Click += new System.EventHandler(this.OPTION_MENU_DISABLE_SPLIT_CLICK);
+            // 
+            // OptionMenuCreateMD5
+            // 
+            this.OptionMenuCreateMD5.Name = "OptionMenuCreateMD5";
+            this.OptionMenuCreateMD5.Size = new System.Drawing.Size(315, 34);
+            this.OptionMenuCreateMD5.Text = "压缩完成后生成MD5文件";
+            this.OptionMenuCreateMD5.CheckedChanged += new System.EventHandler(this.OPTION_MENU_CREATE_MD5_CHECKED_CHANGED);
+            this.OptionMenuCreateMD5.Click += new System.EventHandler(this.OPTION_MENU_CREATE_MD5_CLICK);
+            // 
             // AboutMenu
             // 
             this.AboutMenu.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -214,17 +242,6 @@ namespace Auto7z_GUI
             this.AboutMenuAbout.Size = new System.Drawing.Size(172, 34);
             this.AboutMenuAbout.Text = "Auto7z";
             this.AboutMenuAbout.Click += new System.EventHandler(this.ABOUTMENU_ABOUT);
-            // 
-            // CheckBoxDisableSplit
-            // 
-            this.CheckBoxDisableSplit.AutoSize = true;
-            this.CheckBoxDisableSplit.Location = new System.Drawing.Point(12, 369);
-            this.CheckBoxDisableSplit.Name = "CheckBoxDisableSplit";
-            this.CheckBoxDisableSplit.Size = new System.Drawing.Size(108, 28);
-            this.CheckBoxDisableSplit.TabIndex = 11;
-            this.CheckBoxDisableSplit.Text = "禁用分卷";
-            this.CheckBoxDisableSplit.UseVisualStyleBackColor = true;
-            this.CheckBoxDisableSplit.CheckedChanged += new System.EventHandler(this.CHECKBOX_TARSPLIT_CHECKED_CHANGED);
             // 
             // ButtonConfig
             // 
@@ -293,7 +310,9 @@ namespace Auto7z_GUI
         private System.Windows.Forms.ToolStripMenuItem LanguageMenuSelectenUS;
         private System.Windows.Forms.CheckBox CheckBoxAutoSave;
         private System.Windows.Forms.CheckBox CheckBoxZstd;
-        private System.Windows.Forms.CheckBox CheckBoxDisableSplit;
+        private System.Windows.Forms.ToolStripMenuItem OptionMenu;
+        private System.Windows.Forms.ToolStripMenuItem OptionMenuCreateMD5;
+        private System.Windows.Forms.ToolStripMenuItem OptionMenuDisableSplit;
     }
 }
 

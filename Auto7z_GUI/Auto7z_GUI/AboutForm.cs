@@ -93,7 +93,7 @@ namespace Auto7z_GUI
         private void LOAD_PIC()
         {
             var assembly = Assembly.GetExecutingAssembly();
-            var resourceName = "Auto7z_GUI.Resource.Layla64.png"; // 具体的命名空间和资源名称
+            var resourceName = "Auto7z_GUI.Resource.icon.Layla64.png"; // 具体的命名空间和资源名称
 
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             {
