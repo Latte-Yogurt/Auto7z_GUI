@@ -892,7 +892,15 @@ namespace Auto7z_GUI
 
         private bool ADD_VOLUME_CONDITION(long size, int targetSize)
         {
-            return size > targetSize && targetSize > 0 && !OptionMenuDisableSplit.Checked && (format == "tar" && !CheckBoxZstd.Checked);
+            if (format != "tar")
+            {
+                return size > targetSize && targetSize > 0 && !OptionMenuDisableSplit.Checked;
+            }
+
+            else
+            {
+                return size > targetSize && targetSize > 0 && !OptionMenuDisableSplit.Checked && !CheckBoxZstd.Checked;
+            }
         }
 
         private bool ADD_PASSWORD_CONDITION()
