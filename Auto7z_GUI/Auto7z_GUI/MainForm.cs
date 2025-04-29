@@ -18,22 +18,15 @@ namespace Auto7z_GUI
     {
         private Dictionary<string, Dictionary<string, string>> languageTexts;
 
-        private string workPath;
+        private readonly string workPath;
         private string extractPath;
         private bool hasPermission;
-        private string desktopPath;
-        private string logFileName;
-        private string logFilePath;
         private bool isCreateAuto7zFolder = true;
         private bool isCreate7zFolder = true;
         private bool isCreateLangFolder = true;
         private bool packedOneFile = false;
-        private string xmlPath;
+        private readonly string xmlPath;
         private bool isHandleSeparately;
-        private string filePath;
-        private string fileName;
-        private string directoryPath;
-        private string[] filePaths;
         private string auto7zPath;
         private string sevenZPath;
         private string sevenZExePath;
@@ -47,37 +40,58 @@ namespace Auto7z_GUI
         private int oldScreenWidth;
         private int oldScreenHeight;
         private float oldSystemScale;
-        private int locationX;
-        private int locationY;
-        private string partSize;
-        private string format;
-        private string password;
-        private bool zstd;
-        private bool disableSplit;
-        private bool createMd5;
-        private bool autoSave;
-        private bool portable;
-        private long sevenZUsageCount;
-        private long fileSize;
-        private long folderSize;
-        private long fileSizes;
-        private long folderSizes;
-        private long totalSize;
-        private string newFolderPath;
+
+        public class LogSetting
+        {
+            private readonly string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            private readonly string logFileName = "Auto7z.log";
+            public readonly string logFilePath;
+
+            public LogSetting()
+            {
+                logFilePath = Path.Combine(desktopPath, logFileName);
+            }
+        }
+
+        public class PassParameters
+        {
+            public string currentLanguage { get; set; }
+            public float systemScale { get; set; }
+            public string sevenZExePath { get; set; }
+            public string filePath { get; set; }
+            public string fileName { get; set; }
+            public string directoryPath { get; set; }
+            public string[] filePaths { get; set; }
+            public string partSize { get; set; }
+            public string format { get; set; }
+            public string password { get; set; }
+            public bool zstd { get; set; }
+            public bool disableSplit { get; set; }
+            public bool createMd5 { get; set; }
+            public bool autoSave { get; set; }
+            public bool portable { get; set; }
+            public long sevenZUsageCount { get; set; }
+            public long fileSize { get; set; }
+            public long folderSize { get; set; }
+            public long fileSizes { get; set; }
+            public long folderSizes { get; set; }
+            public long totalSize { get; set; }
+            public string newFolderPath { get; set; }
+        }
+
+        PassParameters passParameters = new PassParameters();
 
         public MainForm(string[] args)
         {
             InitializeComponent();
             this.AutoScaleMode = AutoScaleMode.Dpi;
 
-            GET_SCALE();
+            systemScale = GET_SCALE();
+            passParameters.systemScale = systemScale;
+
             SET_BUTTON_CONFIG_SIZE();
             SET_CLIENT_SIZE();
             SET_MAINFORM_LOCATION();
-
-            desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            logFileName = @"Auto7z_GUI.log";
-            logFilePath = Path.Combine(desktopPath, logFileName);
 
             workPath = GET_WORK_PATH();
             hasPermission = CHECK_PATH_READ_WRITE(workPath, out Exception noPermissionEx);
@@ -94,10 +108,11 @@ namespace Auto7z_GUI
             CHECK_XML_LEGAL(xmlPath);
 
             currentLanguage = GET_CURRENT_LANGUAGE(xmlPath);
+            passParameters.currentLanguage = currentLanguage;
+
             oldScreenWidth = GET_SCREEN_WIDTH(xmlPath);
             oldScreenHeight = GET_SCREEN_HEIGHT(xmlPath);
             oldSystemScale = GET_SYSTEM_SCALE(xmlPath);
-            sevenZUsageCount = GET_SEVENZ_USAGE_COUNT(xmlPath);
 
             InitializeLanguage();
             InitializeEvents();
@@ -140,9 +155,12 @@ namespace Auto7z_GUI
             {
                 if (!isHandleSeparately)
                 {
-                    filePaths = !packedOneFile ? new string[] { Path.GetFullPath(args[0]) } : args;
-                    fileName = Path.GetFileNameWithoutExtension(Path.GetFullPath(args[0]));
-                    directoryPath = Path.GetDirectoryName(Path.GetFullPath(args[0]));
+                    string[] filePaths = !packedOneFile ? new string[] { Path.GetFullPath(args[0]) } : args;
+                    string[] newFilePaths = null;
+                    string fileName = Path.GetFileNameWithoutExtension(Path.GetFullPath(args[0]));
+                    string directoryPath = Path.GetDirectoryName(Path.GetFullPath(args[0]));
+                    passParameters.fileName = fileName;
+                    passParameters.directoryPath = directoryPath;
 
                     bool isFileInUse = IS_FILE_IN_USE(filePaths, out Exception ex);
 
@@ -153,33 +171,34 @@ namespace Auto7z_GUI
                         return;
                     }
 
-                    bool getSizeSuccess = !packedOneFile ? GET_SINGLE_FILE_SIZE(filePaths[0]) : GET_MULTIPLE_FILES_SIZE(filePaths);
+                    bool getSizeSuccess = !packedOneFile ? GET_SINGLE_FILE_SIZE(filePaths[0]) : GET_MULTIPLE_FILES_SIZE(filePaths,out newFilePaths);
+                    passParameters.filePaths = !packedOneFile ? filePaths : newFilePaths;
 
                     if (!getSizeSuccess)
                     {
-                        DELETE_EXTRACT_RESOURCE();
+                        DELETE_EXTRACT_RESOURCE(passParameters);
                         this.Close();
                         return;
                     }
 
-                    if (format == "7z" || format == "zip")
+                    if (passParameters.format == "7z" || passParameters.format == "zip")
                     {
                         if (!CHECK_SEVENZ_EXIST())
                         {
                             CREATE_COMPONENTS();
                             if (!isCreate7zFolder)
                             {
-                                DELETE_EXTRACT_RESOURCE();
+                                DELETE_EXTRACT_RESOURCE(passParameters);
                                 this.Close();
                                 return;
                             }
                         }
 
-                        string command = GENERATE_COMMAND(filePaths);
+                        string command = GENERATE_COMMAND(!packedOneFile ? filePaths : newFilePaths, passParameters);
 
                         if (command == null)
                         {
-                            DELETE_EXTRACT_RESOURCE();
+                            DELETE_EXTRACT_RESOURCE(passParameters);
                             this.Close();
                             return;
                         }
@@ -188,38 +207,38 @@ namespace Auto7z_GUI
 
                         if (!finished)
                         {
-                            DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                            DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                         }
 
-                        if (createMd5 && Directory.Exists(newFolderPath))
+                        if (passParameters.createMd5 && Directory.Exists(passParameters.newFolderPath))
                         {
-                            GENERATE_MD5(md5CalculaterPath, newFolderPath);
+                            GENERATE_MD5(md5CalculaterPath, passParameters.newFolderPath);
                         }
 
                         ADD_SEVENZ_USAGE_COUNT();
-                        DELETE_EXTRACT_RESOURCE();
+                        DELETE_EXTRACT_RESOURCE(passParameters);
                         this.Close();
                         return;
                     }
 
-                    if (format == "tar")
+                    if (passParameters.format == "tar")
                     {
                         if (!CHECK_SEVENZ_EXIST())
                         {
                             CREATE_COMPONENTS();
                             if (!isCreate7zFolder)
                             {
-                                DELETE_EXTRACT_RESOURCE();
+                                DELETE_EXTRACT_RESOURCE(passParameters);
                                 this.Close();
                                 return;
                             }
                         }
 
-                        string command = GENERATE_COMMAND(filePaths);
+                        string command = GENERATE_COMMAND(!packedOneFile ? filePaths : newFilePaths, passParameters);
 
                         if (command == null)
                         {
-                            DELETE_EXTRACT_RESOURCE();
+                            DELETE_EXTRACT_RESOURCE(passParameters);
                             this.Close();
                             return;
                         }
@@ -228,32 +247,32 @@ namespace Auto7z_GUI
 
                         if (!tarFinished)
                         {
-                            DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                            DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                         }
 
-                        if (zstd)
+                        if (passParameters.zstd)
                         {
-                            string zstdCommand = ZSTD_COMMAND();
+                            string zstdCommand = ZSTD_COMMAND(passParameters);
                             bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
 
                             if (!zstdFinished)
                             {
-                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                             }
 
                             else
                             {
-                                DELETE_TEMP_TAR(newFolderPath);
+                                DELETE_TEMP_TAR(passParameters.newFolderPath, passParameters);
                             }
                         }
 
-                        if (createMd5 && Directory.Exists(newFolderPath))
+                        if (passParameters.createMd5 && Directory.Exists(passParameters.newFolderPath))
                         {
-                            GENERATE_MD5(md5CalculaterPath, newFolderPath);
+                            GENERATE_MD5(md5CalculaterPath, passParameters.newFolderPath);
                         }
 
                         ADD_SEVENZ_USAGE_COUNT();
-                        DELETE_EXTRACT_RESOURCE();
+                        DELETE_EXTRACT_RESOURCE(passParameters);
                         this.Close();
                         return;
                     }
@@ -263,9 +282,12 @@ namespace Auto7z_GUI
                 {
                     foreach (var singleFilePath in args)
                     {
-                        filePath = Path.GetFullPath(singleFilePath);
-                        fileName = Path.GetFileNameWithoutExtension(filePath);
-                        directoryPath = Path.GetDirectoryName(filePath);
+                        string filePath = Path.GetFullPath(singleFilePath);
+                        string fileName = Path.GetFileNameWithoutExtension(filePath);
+                        string directoryPath = Path.GetDirectoryName(filePath);
+                        passParameters.filePath = filePath;
+                        passParameters.fileName = fileName;
+                        passParameters.directoryPath = directoryPath;
 
                         bool isFileInUse = IS_FILE_IN_USE(new string[] { filePath }, out Exception ex);
 
@@ -282,7 +304,7 @@ namespace Auto7z_GUI
                             return;
                         }
 
-                        if (format == "7z" || format == "zip")
+                        if (passParameters.format == "7z" || passParameters.format == "zip")
                         {
                             if (!CHECK_SEVENZ_EXIST())
                             {
@@ -293,24 +315,24 @@ namespace Auto7z_GUI
                                 }
                             }
 
-                            string command = GENERATE_COMMAND(new string[] { filePath });
+                            string command = GENERATE_COMMAND(new string[] { filePath }, passParameters);
 
                             bool finished = EXECUTE_COMMAND_BOOL(command);
 
                             if (!finished)
                             {
-                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                             }
 
-                            if (createMd5 && Directory.Exists(newFolderPath))
+                            if (passParameters.createMd5 && Directory.Exists(passParameters.newFolderPath))
                             {
-                                GENERATE_MD5(md5CalculaterPath, newFolderPath);
+                                GENERATE_MD5(md5CalculaterPath, passParameters.newFolderPath);
                             }
 
                             ADD_SEVENZ_USAGE_COUNT();
                         }
 
-                        if (format == "tar")
+                        if (passParameters.format == "tar")
                         {
                             if (!CHECK_SEVENZ_EXIST())
                             {
@@ -321,40 +343,40 @@ namespace Auto7z_GUI
                                 }
                             }
 
-                            string command = GENERATE_COMMAND(new string[] { filePath });
+                            string command = GENERATE_COMMAND(new string[] { filePath }, passParameters);
 
                             bool tarFinished = EXECUTE_COMMAND_BOOL(command);
 
                             if (!tarFinished)
                             {
-                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                             }
 
-                            if (zstd)
+                            if (passParameters.zstd)
                             {
-                                string zstdCommand = ZSTD_COMMAND();
+                                string zstdCommand = ZSTD_COMMAND(passParameters);
                                 bool zstdFinished = EXECUTE_COMMAND_BOOL(zstdCommand);
 
                                 if (!zstdFinished)
                                 {
-                                    DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                    DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                                 }
                                 else
                                 {
-                                    DELETE_TEMP_TAR(newFolderPath);
+                                    DELETE_TEMP_TAR(passParameters.newFolderPath, passParameters);
                                 }
                             }
 
-                            if (createMd5 && Directory.Exists(newFolderPath))
+                            if (passParameters.createMd5 && Directory.Exists(passParameters.newFolderPath))
                             {
-                                GENERATE_MD5(md5CalculaterPath, newFolderPath);
+                                GENERATE_MD5(md5CalculaterPath, passParameters.newFolderPath);
                             }
 
                             ADD_SEVENZ_USAGE_COUNT();
                         }
                     }
 
-                    DELETE_EXTRACT_RESOURCE();
+                    DELETE_EXTRACT_RESOURCE(passParameters);
                     this.Close();
                     return;
                 }
@@ -376,7 +398,7 @@ namespace Auto7z_GUI
             return appDataLocalPath;
         }
 
-        private void GET_SCALE()
+        private float GET_SCALE()
         {
             float dpi;
             using (Graphics g = this.CreateGraphics())
@@ -384,7 +406,7 @@ namespace Auto7z_GUI
                 dpi = g.DpiX;
             }
 
-            systemScale = dpi / 96.0f;
+            return dpi / 96.0f;
         }
         #endregion
 
@@ -488,22 +510,35 @@ namespace Auto7z_GUI
             zhCNPath = Path.Combine(langPath, "zh-cn.txt");
             zhTWPath = Path.Combine(langPath, "zh-tw.txt");
             md5CalculaterPath = Path.Combine(auto7zPath, "MD5Calculater.exe");
+
+            passParameters.sevenZExePath = sevenZExePath;
         }
 
         private void InitializeConfig()
         {
-            partSize = GET_PARTSIZE(xmlPath);
-            format = GET_FORMAT(xmlPath);
-            password = GET_PASSWORD(xmlPath);
-            zstd = GET_ZSTD(xmlPath);
-            disableSplit = GET_DISABLE_SPLIT(xmlPath);
-            createMd5 = GET_CREATE_MD5(xmlPath);
-            autoSave = GET_AUTOSAVE(xmlPath);
-            portable = GET_PORTABLE(xmlPath);
+            string partSize = GET_PARTSIZE(xmlPath);
+            string format = GET_FORMAT(xmlPath);
+            string password = GET_PASSWORD(xmlPath);
+            bool zstd = GET_ZSTD(xmlPath);
+            bool disableSplit = GET_DISABLE_SPLIT(xmlPath);
+            bool createMd5 = GET_CREATE_MD5(xmlPath);
+            bool autoSave = GET_AUTOSAVE(xmlPath);
+            bool portable = GET_PORTABLE(xmlPath);
+            long sevenZUsageCount = GET_SEVENZ_USAGE_COUNT(xmlPath);
 
-            DEFAULT_PARTSIZE_TEXTBOX();
-            DEFAULT_FORMAT_MENU();
-            DEFAULT_PASSWORD_TEXTBOX();
+            passParameters.partSize = partSize;
+            passParameters.format = format;
+            passParameters.password = password;
+            passParameters.zstd = zstd;
+            passParameters.disableSplit = disableSplit;
+            passParameters.createMd5 = createMd5;
+            passParameters.autoSave = autoSave;
+            passParameters.portable = portable;
+            passParameters.sevenZUsageCount = sevenZUsageCount;
+
+            DEFAULT_PARTSIZE_TEXTBOX(passParameters);
+            DEFAULT_FORMAT_MENU(passParameters);
+            DEFAULT_PASSWORD_TEXTBOX(passParameters);
             DEFAULT_ZSTD();
             DEFAULT_OPTION_MENU_DISABLE_SPLIT();
             DEFAULT_OPTION_MENU_CREATE_MD5();
@@ -699,7 +734,7 @@ namespace Auto7z_GUI
             }
         }
 
-        private bool CREATE_NEW_FOLDER()
+        private bool CREATE_NEW_FOLDER(PassParameters pass)
         {
             string folderCodeName = null;
             string nowTime = DateTime.Now.ToString("HH-mm-ss");
@@ -717,13 +752,13 @@ namespace Auto7z_GUI
                     break;
             }
 
-            newFolderPath = $"{directoryPath}\\{fileName}_{folderCodeName}";
+            pass.newFolderPath = $"{pass.directoryPath}\\{pass.fileName}_{folderCodeName}";
 
-            if (!Directory.Exists(newFolderPath))
+            if (!Directory.Exists(pass.newFolderPath))
             {
                 try
                 {
-                    Directory.CreateDirectory(newFolderPath);
+                    Directory.CreateDirectory(pass.newFolderPath);
                     return true;
                 }
 
@@ -740,57 +775,57 @@ namespace Auto7z_GUI
             }
         }
 
-        private string GENERATE_COMMAND(string[] paths)
+        private string GENERATE_COMMAND(string[] paths, PassParameters pass)
         {
-            if (!CREATE_NEW_FOLDER())
+            if (!CREATE_NEW_FOLDER(pass))
             {
                 return null;
             }
 
             if (!packedOneFile)
             {
-                return GENERATE_SINGLE_FILE_COMMAND(paths[0]);
+                return GENERATE_SINGLE_FILE_COMMAND(paths[0], pass);
             }
 
             else
             {
-                return GENERATE_MULTIPLE_FILES_COMMAND(paths);
+                return GENERATE_MULTIPLE_FILES_COMMAND(paths, pass);
             }
         }
 
-        private string GENERATE_SINGLE_FILE_COMMAND(string path)
+        private string GENERATE_SINGLE_FILE_COMMAND(string path, PassParameters pass)
         {
             string fullPath = Path.GetFullPath(path);
 
-            if (!IS_VALID_PATH(fullPath))
+            if (!IS_VALID_PATH(fullPath, pass))
             {
                 return null;
             }
 
-            long size = GET_FILE_SIZE_OR_FOLDER_SIZE(fullPath);
-            string command = BUILD_COMMAND(fullPath, size);
+            long size = GET_FILE_SIZE_OR_FOLDER_SIZE(fullPath, pass);
+            string command = BUILD_COMMAND(fullPath, size, pass);
 
             return command;
         }
 
-        private string GENERATE_MULTIPLE_FILES_COMMAND(string[] paths)
+        private string GENERATE_MULTIPLE_FILES_COMMAND(string[] paths, PassParameters pass)
         {
             foreach (var path in paths)
             {
                 string fullPath = Path.GetFullPath(path);
 
-                if (!IS_VALID_PATH(fullPath))
+                if (!IS_VALID_PATH(fullPath, pass))
                 {
                     return null;
                 }
             }
 
-            string command = BUILD_COMMAND_FOR_MULTIPLE_FILES(paths);
+            string command = BUILD_COMMAND_FOR_MULTIPLE_FILES(paths, pass);
 
             return command;
         }
 
-        private bool IS_VALID_PATH(string fullPath)
+        private bool IS_VALID_PATH(string fullPath, PassParameters pass)
         {
             if (!File.Exists(fullPath) && !Directory.Exists(fullPath))
             {
@@ -800,7 +835,7 @@ namespace Auto7z_GUI
                 }
                 else
                 {
-                    ERROR_FILE_MAYBE_NOT_EXIST(fullPath, newFolderPath);
+                    ERROR_FILE_MAYBE_NOT_EXIST(fullPath, pass.newFolderPath);
                 }
 
                 return false;
@@ -809,36 +844,36 @@ namespace Auto7z_GUI
             return true;
         }
 
-        private long GET_FILE_SIZE_OR_FOLDER_SIZE(string path)
+        private long GET_FILE_SIZE_OR_FOLDER_SIZE(string path, PassParameters pass)
         {
             bool isFile = File.Exists(path);
-            return isFile ? fileSize : folderSize;
+            return isFile ? pass.fileSize : pass.folderSize;
         }
 
-        private string BUILD_COMMAND(string fullPath, long size)
+        private string BUILD_COMMAND(string fullPath, long size, PassParameters pass)
         {
-            bool isNumber = int.TryParse(partSize, out int targetSize);
+            bool isNumber = int.TryParse(pass.partSize, out int targetSize);
 
             if (!isNumber)
             {
                 targetSize = 0;
             }
 
-            if (format == "7z" || format == "zip" || format == "tar")
+            if (pass.format == "7z" || pass.format == "zip" || pass.format == "tar")
             {
-                string command = $"@\"{sevenZExePath}\" a -aoa -t{format} \"{newFolderPath}\\{fileName}.{format}\" \"{fullPath}\"";
+                string command = $"@\"{pass.sevenZExePath}\" a -aoa -t{pass.format} \"{pass.newFolderPath}\\{pass.fileName}.{pass.format}\" \"{fullPath}\"";
 
-                if (ADD_VOLUME_CONDITION(size, targetSize))
+                if (ADD_VOLUME_CONDITION(size, targetSize, pass))
                 {
                     command += $" -v{targetSize}m";
                 }
 
-                if (ADD_PASSWORD_CONDITION())
+                if (ADD_PASSWORD_CONDITION(pass))
                 {
-                    command += $" -p{password}";
+                    command += $" -p{pass.password}";
                 }
 
-                if (ADD_MAXLEVEL_COMPRESSION_RATIO())
+                if (ADD_MAXLEVEL_COMPRESSION_RATIO(pass))
                 {
                     command += @" -mx=9 -ms=on";
                 }
@@ -849,19 +884,19 @@ namespace Auto7z_GUI
             return null;
         }
 
-        private string BUILD_COMMAND_FOR_MULTIPLE_FILES(string[] paths)
+        private string BUILD_COMMAND_FOR_MULTIPLE_FILES(string[] paths, PassParameters pass)
         {
-            bool isNumber = int.TryParse(partSize, out int targetSize);
+            bool isNumber = int.TryParse(pass.partSize, out int targetSize);
 
             if (!isNumber)
             {
                 targetSize = 0;
             }
 
-            if (format == "7z" || format == "zip" || format == "tar")
+            if (pass.format == "7z" || pass.format == "zip" || pass.format == "tar")
             {
                 StringBuilder command = new StringBuilder();
-                command.Append($"@\"{sevenZExePath}\" a -aoa -t{format} \"{newFolderPath}\\{fileName}.{format}\"");
+                command.Append($"@\"{pass.sevenZExePath}\" a -aoa -t{pass.format} \"{pass.newFolderPath}\\{pass.fileName}.{pass.format}\"");
 
                 foreach (var path in paths)
                 {
@@ -869,17 +904,17 @@ namespace Auto7z_GUI
                     command.Append($" \"{fullPath}\"");
                 }
 
-                if (ADD_VOLUME_CONDITION(totalSize, targetSize))
+                if (ADD_VOLUME_CONDITION(pass.totalSize, targetSize, pass))
                 {
                     command.Append($" -v{targetSize}m");
                 }
 
-                if (ADD_PASSWORD_CONDITION())
+                if (ADD_PASSWORD_CONDITION(pass))
                 {
-                    command.Append($" -p{password}");
+                    command.Append($" -p{pass.password}");
                 }
 
-                if (ADD_MAXLEVEL_COMPRESSION_RATIO())
+                if (ADD_MAXLEVEL_COMPRESSION_RATIO(pass))
                 {
                     command.Append(@" -mx=9 -ms=on");
                 }
@@ -890,9 +925,9 @@ namespace Auto7z_GUI
             return null;
         }
 
-        private bool ADD_VOLUME_CONDITION(long size, int targetSize)
+        private bool ADD_VOLUME_CONDITION(long size, int targetSize, PassParameters pass)
         {
-            if (format != "tar")
+            if (pass.format != "tar")
             {
                 return size > targetSize && targetSize > 0 && !OptionMenuDisableSplit.Checked;
             }
@@ -903,36 +938,36 @@ namespace Auto7z_GUI
             }
         }
 
-        private bool ADD_PASSWORD_CONDITION()
+        private bool ADD_PASSWORD_CONDITION(PassParameters pass)
         {
-            return !string.IsNullOrEmpty(password) && format != "tar";
+            return !string.IsNullOrEmpty(pass.password) && pass.format != "tar";
         }
 
-        private bool ADD_MAXLEVEL_COMPRESSION_RATIO()
+        private bool ADD_MAXLEVEL_COMPRESSION_RATIO(PassParameters pass)
         {
-            return format == "7z";
+            return pass.format == "7z";
         }
 
-        private string ZSTD_COMMAND()
+        private string ZSTD_COMMAND(PassParameters pass)
         {
-            string targetTar = $"{newFolderPath}\\{fileName}.tar";
+            string targetTar = $"{pass.newFolderPath}\\{pass.fileName}.tar";
 
-            if (!File.Exists(targetTar) || !Directory.Exists(newFolderPath))
+            if (!File.Exists(targetTar) || !Directory.Exists(pass.newFolderPath))
             {
                 return null; // 如果文件或目录不存在，返回 null
             }
 
-            bool isNumber = int.TryParse(partSize, out int targetSize);
+            bool isNumber = int.TryParse(pass.partSize, out int targetSize);
 
             if (!isNumber)
             {
                 targetSize = 0;
             }
 
-            bool isFile = File.Exists(filePath);
-            long size = isFile ? fileSize : folderSize; // 确定使用文件大小还是文件夹大小
+            bool isFile = File.Exists(pass.filePath);
+            long size = isFile ? pass.fileSize : pass.folderSize; // 确定使用文件大小还是文件夹大小
 
-            string command = $"@\"{sevenZExePath}\" a -aoa -tzstd \"{newFolderPath}\\{fileName}.tar.zst\" \"{newFolderPath}\\{fileName}.tar\"";
+            string command = $"@\"{pass.sevenZExePath}\" a -aoa -tzstd \"{pass.newFolderPath}\\{pass.fileName}.tar.zst\" \"{pass.newFolderPath}\\{pass.fileName}.tar\"";
 
             // 添加分卷选项
             if (size > targetSize && targetSize > 0 && !OptionMenuDisableSplit.Checked)
@@ -959,12 +994,12 @@ namespace Auto7z_GUI
             }
         }
 
-        private void DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED()
+        private void DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(PassParameters pass)
         {
-            if (Directory.Exists($"{newFolderPath}"))
+            if (Directory.Exists($"{pass.newFolderPath}"))
             {
-                DELETE_DIRECTOR_CONTENTS(newFolderPath);
-                Directory.Delete(newFolderPath);
+                DELETE_DIRECTOR_CONTENTS(pass.newFolderPath);
+                Directory.Delete(pass.newFolderPath);
             }
         }
 
@@ -977,19 +1012,19 @@ namespace Auto7z_GUI
             }
         }
 
-        private void DELETE_EXTRACT_RESOURCE()
+        private void DELETE_EXTRACT_RESOURCE(PassParameters pass)
         {
-            if (portable && !IS_PROCESS_RUNNING("7z"))
+            if (pass.portable && !IS_PROCESS_RUNNING("7z"))
             {
                 DELETE_FILES_CAUSE_PORTABLE_MODE();
             }
         }
 
-        private void DELETE_TEMP_TAR(string dirPath)
+        private void DELETE_TEMP_TAR(string dirPath, PassParameters pass)
         {
             if (Directory.Exists(dirPath))
             {
-                string file = $"{dirPath}\\{fileName}.tar";
+                string file = $"{dirPath}\\{pass.fileName}.tar";
 
                 if (File.Exists(file))
                 {
@@ -1015,9 +1050,9 @@ namespace Auto7z_GUI
 
             if (File.Exists(fullPath))
             {
-                fileSize = GET_FILE_SIZE(fullPath);
+                passParameters.fileSize = GET_FILE_SIZE(fullPath);
 
-                if (fileSize == -1)
+                if (passParameters.fileSize == -1)
                 {
                     ERROR_EMPTY_SIZE(name, fullPath);
                     return false;
@@ -1028,9 +1063,9 @@ namespace Auto7z_GUI
 
             else if (Directory.Exists(fullPath))
             {
-                folderSize = GET_FOLDER_SIZE(fullPath);
+                passParameters.folderSize = GET_FOLDER_SIZE(fullPath);
 
-                if (folderSize == -1)
+                if (passParameters.folderSize == -1)
                 {
                     ERROR_EMPTY_SIZE(name, fullPath);
                     return false;
@@ -1059,7 +1094,7 @@ namespace Auto7z_GUI
             return false;
         }
 
-        private bool GET_MULTIPLE_FILES_SIZE(string[] paths)
+        private bool GET_MULTIPLE_FILES_SIZE(string[] paths, out string[] newFilePaths)
         {
             List<string> fileList = new List<string>(paths);
 
@@ -1071,11 +1106,11 @@ namespace Auto7z_GUI
 
                 if (File.Exists(fullPath))
                 {
-                    fileSize = GET_FILE_SIZE(fullPath);
+                    passParameters.fileSize = GET_FILE_SIZE(fullPath);
 
-                    if (fileSize != -1)
+                    if (passParameters.fileSize != -1)
                     {
-                        fileSizes += fileSize;
+                        passParameters.fileSizes += passParameters.fileSize;
                     }
 
                     else
@@ -1087,11 +1122,11 @@ namespace Auto7z_GUI
 
                 else if (Directory.Exists(fullPath))
                 {
-                    folderSize = GET_FOLDER_SIZE(fullPath);
+                    passParameters.folderSize = GET_FOLDER_SIZE(fullPath);
 
-                    if (folderSize != -1)
+                    if (passParameters.folderSize != -1)
                     {
-                        folderSizes += folderSize;
+                        passParameters.folderSizes += passParameters.folderSize;
                     }
 
                     else
@@ -1117,11 +1152,12 @@ namespace Auto7z_GUI
                 }
             }
 
-            filePaths = fileList.ToArray();
+            string[] filePaths = fileList.ToArray();
+            newFilePaths = filePaths;
 
             if (filePaths != null)
             {
-                totalSize = fileSizes + folderSizes;
+                passParameters.totalSize = passParameters.fileSizes + passParameters.folderSizes;
                 return true;
             }
 
@@ -2445,38 +2481,39 @@ namespace Auto7z_GUI
         #endregion
 
         #region Initialize UI Contents
-        private void DEFAULT_PARTSIZE_TEXTBOX()
+        private void DEFAULT_PARTSIZE_TEXTBOX(PassParameters pass)
         {
+            string partSize = pass.partSize;
             TextBoxSize.Text = partSize.ToString();
         }
 
-        private void DEFAULT_FORMAT_MENU()
+        private void DEFAULT_FORMAT_MENU(PassParameters pass)
         {
             ComboBoxFormat.Items.Add("7z");
             ComboBoxFormat.Items.Add("zip");
             ComboBoxFormat.Items.Add("tar");
 
-            if (format == "7z")
+            if (pass.format == "7z")
             {
                 ComboBoxFormat.SelectedIndex = 0;
             }
 
-            if (format == "zip")
+            if (pass.format == "zip")
             {
                 ComboBoxFormat.SelectedIndex = 1;
             }
 
-            if (format == "tar")
+            if (pass.format == "tar")
             {
                 ComboBoxFormat.SelectedIndex = 2;
             }
         }
 
-        private void DEFAULT_PASSWORD_TEXTBOX()
+        private void DEFAULT_PASSWORD_TEXTBOX(PassParameters pass)
         {
-            TextBoxPassword.Text = password;
+            TextBoxPassword.Text = pass.password;
 
-            if (format == "tar")
+            if (pass.format == "tar")
             {
                 TextBoxPassword.Enabled = false;
             }
@@ -2489,50 +2526,50 @@ namespace Auto7z_GUI
 
         private void DEFAULT_OPTION_MENU_DISABLE_SPLIT()
         {
-            OptionMenuDisableSplit.Checked = disableSplit;
+            OptionMenuDisableSplit.Checked = passParameters.disableSplit;
         }
 
         private void DEFAULT_OPTION_MENU_CREATE_MD5()
         {
-            OptionMenuCreateMD5.Checked = createMd5;
+            OptionMenuCreateMD5.Checked = passParameters.createMd5;
         }
 
         private void DEFAULT_ZSTD()
         {
-            CheckBoxZstd.Checked = zstd;
+            CheckBoxZstd.Checked = passParameters.zstd;
         }
 
         private void DEFAULT_AUTOSAVE()
         {
-            CheckBoxAutoSave.Checked = autoSave;
+            CheckBoxAutoSave.Checked = passParameters.autoSave;
         }
         #endregion
 
         #region Config Save Functions
-        private void SAVE_CONFIG()
+        private void SAVE_CONFIG(PassParameters pass)
         {
             CHECK_XML_LEGAL(xmlPath);
             int width = Screen.PrimaryScreen.Bounds.Width;
             int height = Screen.PrimaryScreen.Bounds.Height;
 
-            UPDATE_CONFIG($"{xmlPath}", "Language", $"{currentLanguage}");
+            UPDATE_CONFIG($"{xmlPath}", "Language", $"{pass.currentLanguage}");
             UPDATE_CONFIG($"{xmlPath}", "ScreenWidth", $"{width}");
             UPDATE_CONFIG($"{xmlPath}", "ScreenHeight", $"{height}");
-            UPDATE_CONFIG($"{xmlPath}", "SystemScale", $"{systemScale}");
-            UPDATE_CONFIG($"{xmlPath}", "PartSize", $"{partSize}");
-            UPDATE_CONFIG($"{xmlPath}", "Format", $"{format}");
-            UPDATE_CONFIG($"{xmlPath}", "Password", $"{password}");
-            UPDATE_CONFIG($"{xmlPath}", "Zstd", $"{zstd}");
-            UPDATE_CONFIG($"{xmlPath}", "DisableSplit", $"{disableSplit}");
-            UPDATE_CONFIG($"{xmlPath}", "CreateMD5", $"{createMd5}");
-            UPDATE_CONFIG($"{xmlPath}", "AutoSave", $"{autoSave}");
-            UPDATE_CONFIG($"{xmlPath}", "SevenZUsageCount", $"{sevenZUsageCount}");
+            UPDATE_CONFIG($"{xmlPath}", "SystemScale", $"{pass.systemScale}");
+            UPDATE_CONFIG($"{xmlPath}", "PartSize", $"{pass.partSize}");
+            UPDATE_CONFIG($"{xmlPath}", "Format", $"{pass.format}");
+            UPDATE_CONFIG($"{xmlPath}", "Password", $"{pass.password}");
+            UPDATE_CONFIG($"{xmlPath}", "Zstd", $"{pass.zstd}");
+            UPDATE_CONFIG($"{xmlPath}", "DisableSplit", $"{pass.disableSplit}");
+            UPDATE_CONFIG($"{xmlPath}", "CreateMD5", $"{pass.createMd5}");
+            UPDATE_CONFIG($"{xmlPath}", "AutoSave", $"{pass.autoSave}");
+            UPDATE_CONFIG($"{xmlPath}", "SevenZUsageCount", $"{pass.sevenZUsageCount}");
         }
 
         private void SAVE_LOCATION()
         {
-            locationX = this.Location.X;
-            locationY = this.Location.Y;
+            int locationX = this.Location.X;
+            int locationY = this.Location.Y;
 
             UPDATE_CONFIG($"{xmlPath}", "LocationX", $"{locationX}");
             UPDATE_CONFIG($"{xmlPath}", "LocationY", $"{locationY}");
@@ -2540,18 +2577,20 @@ namespace Auto7z_GUI
 
         private void ADD_SEVENZ_USAGE_COUNT()
         {
-            sevenZUsageCount++;
-            UPDATE_CONFIG($"{xmlPath}", "SevenZUsageCount", $"{sevenZUsageCount}");
+            passParameters.sevenZUsageCount++;
+            UPDATE_CONFIG($"{xmlPath}", "SevenZUsageCount", $"{passParameters.sevenZUsageCount}");
         }
         #endregion
 
         #region Message and Log
         private void WRITE_ERROR_LOG(string message, Exception error)
         {
-            string nowTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            CHECK_LOG_LEGAL(logFilePath);
+            LogSetting logSetting = new LogSetting();
 
-            using (StreamWriter writer = new StreamWriter(logFilePath, true))
+            string nowTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            CHECK_LOG_LEGAL(logSetting.logFilePath);
+
+            using (StreamWriter writer = new StreamWriter(logSetting.logFilePath, true))
             {
                 writer.WriteLine($"{nowTime}: {message},{error.Message}");
                 writer.WriteLine();
@@ -2560,10 +2599,12 @@ namespace Auto7z_GUI
 
         private void WRITE_MESSAGE_LOG(string message)
         {
-            string nowTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            CHECK_LOG_LEGAL(logFilePath);
+            LogSetting logSetting = new LogSetting();
 
-            using (StreamWriter writer = new StreamWriter(logFilePath, true))
+            string nowTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            CHECK_LOG_LEGAL(logSetting.logFilePath);
+
+            using (StreamWriter writer = new StreamWriter(logSetting.logFilePath, true))
             {
                 writer.WriteLine($"{nowTime}: {message}");
                 writer.WriteLine();
@@ -2862,6 +2903,9 @@ namespace Auto7z_GUI
         {
             const float epsilon = 0.00001f; // 定义一个浮点值的误差范围
 
+            int locationX;
+            int locationY;
+
             if (oldScreenWidth == Screen.PrimaryScreen.Bounds.Width && oldScreenHeight == Screen.PrimaryScreen.Bounds.Height && Math.Abs(oldSystemScale - systemScale) < epsilon)
             {
                 locationX = GET_LOCATION_X(xmlPath);
@@ -2884,7 +2928,7 @@ namespace Auto7z_GUI
         private void BUTTON_CONFIG_CLICK(object sender, EventArgs e)
         {
             NOTICE_CONFIG_SAVED();
-            SAVE_CONFIG();
+            SAVE_CONFIG(passParameters);
             SAVE_LOCATION();
         }
 
@@ -2893,12 +2937,12 @@ namespace Auto7z_GUI
             bool isAutoSave = CheckBoxAutoSave.Checked;
             if (isAutoSave)
             {
-                autoSave = true;
+                passParameters.autoSave = true;
             }
 
             else
             {
-                autoSave = false;
+                passParameters.autoSave = false;
             }
         }
 
@@ -2908,12 +2952,12 @@ namespace Auto7z_GUI
 
             if (isZstd)
             {
-                zstd = true;
+                passParameters.zstd = true;
             }
 
             else
             {
-                zstd = false;
+                passParameters.zstd = false;
             }
         }
 
@@ -2939,7 +2983,7 @@ namespace Auto7z_GUI
                     }
                 }
 
-                disableSplit = true;
+                passParameters.disableSplit = true;
                 TextBoxSize.Enabled = false;
             }
 
@@ -2957,7 +3001,7 @@ namespace Auto7z_GUI
                     }
                 }
 
-                disableSplit = false;
+                passParameters.disableSplit = false;
                 TextBoxSize.Enabled = true;
             }
         }
@@ -2994,7 +3038,7 @@ namespace Auto7z_GUI
                     }
                 }
 
-                createMd5 = true;
+                passParameters.createMd5 = true;
             }
 
             else
@@ -3011,7 +3055,7 @@ namespace Auto7z_GUI
                     }
                 }
 
-                createMd5 = false;
+                passParameters.createMd5 = false;
             }
         }
 
@@ -3027,12 +3071,12 @@ namespace Auto7z_GUI
 
         private void COMBOBOX_FORMAT_SELECTED_INDEX_CHANGED_UI(object sender, EventArgs e)
         {
-            if (format=="tar")
+            if (passParameters.format=="tar")
             {
                 TextBoxPassword.Enabled = false;
                 CheckBoxZstd.Visible = true;
                 
-                if (zstd)
+                if (passParameters.zstd)
                 {
                     CheckBoxZstd.Checked = true;
                 }
@@ -3048,22 +3092,25 @@ namespace Auto7z_GUI
         private void LANGUAGE_MENU_SELECT_zhCN_CLICK(object sender, EventArgs e)
         {
             currentLanguage = "zh-CN";
+            passParameters.currentLanguage = currentLanguage;
             UpdateLanguage();
-            UPDATE_CONFIG($"{xmlPath}", "Language", $"{currentLanguage}");
+            UPDATE_CONFIG($"{xmlPath}", "Language", $"{passParameters.currentLanguage}");
         }
 
         private void LANGUAGE_MENU_SELECT_zhTW_CLICK(object sender, EventArgs e)
         {
             currentLanguage = "zh-TW";
+            passParameters.currentLanguage = currentLanguage;
             UpdateLanguage();
-            UPDATE_CONFIG($"{xmlPath}", "Language", $"{currentLanguage}");
+            UPDATE_CONFIG($"{xmlPath}", "Language", $"{passParameters.currentLanguage}");
         }
 
         private void LANGUAGE_MENU_SELECT_enUS_CLICK(object sender, EventArgs e)
         {
             currentLanguage = "en-US";
+            passParameters.currentLanguage = currentLanguage;
             UpdateLanguage();
-            UPDATE_CONFIG($"{xmlPath}", "Language", $"{currentLanguage}");
+            UPDATE_CONFIG($"{xmlPath}", "Language", $"{passParameters.currentLanguage}");
         }
 
         private void MAINFORM_LOAD(object sender, EventArgs e)
@@ -3074,19 +3121,19 @@ namespace Auto7z_GUI
         private void COMBOBOX_FORMAT_SELECTED_INDEX_CHANGED(object sender, EventArgs e)
         {
             string selectedFormat = ComboBoxFormat.SelectedItem.ToString();
-            format = selectedFormat;
+            passParameters.format = selectedFormat;
         }
 
         private void TEXTBOX_SIZE_TEXT_CHANGED(object sender, EventArgs e)
         {
             string newSize = TextBoxSize.Text;
-            partSize = newSize;
+            passParameters.partSize = newSize;
         }
 
         private void TEXTBOX_PASSWORD_TEXT_CHANGED(object sender, EventArgs e)
         {
             string newPassword = TextBoxPassword.Text;
-            password = newPassword;
+            passParameters.password = newPassword;
         }
 
         private void TEXTBOX_SIZE_KEYPRESS(object sender, KeyPressEventArgs e)
@@ -3142,9 +3189,12 @@ namespace Auto7z_GUI
             {
                 if (!isHandleSeparately)
                 {
-                    filePaths = !packedOneFile ? new string[] { Path.GetFullPath(files[0]) } : files;
-                    fileName = Path.GetFileNameWithoutExtension(Path.GetFullPath(files[0]));
-                    directoryPath = Path.GetDirectoryName(Path.GetFullPath(files[0]));
+                    string[] filePaths = !packedOneFile ? new string[] { Path.GetFullPath(files[0]) } : files;
+                    string[] newFilePaths = null;
+                    string fileName = Path.GetFileNameWithoutExtension(Path.GetFullPath(files[0]));
+                    string directoryPath = Path.GetDirectoryName(Path.GetFullPath(files[0]));
+                    passParameters.fileName = fileName;
+                    passParameters.directoryPath = directoryPath;
 
                     bool isFileInUse = IS_FILE_IN_USE(filePaths, out Exception ex);
 
@@ -3154,7 +3204,8 @@ namespace Auto7z_GUI
                         return;
                     }
 
-                    bool getSizeSuccess = !packedOneFile ? GET_SINGLE_FILE_SIZE(filePaths[0]):GET_MULTIPLE_FILES_SIZE(filePaths);
+                    bool getSizeSuccess = !packedOneFile ? GET_SINGLE_FILE_SIZE(filePaths[0]) : GET_MULTIPLE_FILES_SIZE(filePaths, out newFilePaths);
+                    passParameters.filePaths = !packedOneFile ? filePaths : newFilePaths;
 
                     if (!getSizeSuccess)
                     {
@@ -3162,7 +3213,7 @@ namespace Auto7z_GUI
                         return;
                     }
 
-                    if (format == "7z" || format == "zip")
+                    if (passParameters.format == "7z" || passParameters.format == "zip")
                     {
                         if (!CHECK_SEVENZ_EXIST())
                         {
@@ -3174,7 +3225,7 @@ namespace Auto7z_GUI
                             }
                         }
 
-                        string command = GENERATE_COMMAND(filePaths);
+                        string command = GENERATE_COMMAND(!packedOneFile ? filePaths : newFilePaths, passParameters);
 
                         if (command == null)
                         {
@@ -3187,19 +3238,19 @@ namespace Auto7z_GUI
                         if (!finished)
                         {
                             PIN_MAINFORM();
-                            DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                            DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                         }
 
-                        if (createMd5 && Directory.Exists(newFolderPath))
+                        if (passParameters.createMd5 && Directory.Exists(passParameters.newFolderPath))
                         {
-                            await Task.Run(() => GENERATE_MD5(md5CalculaterPath, newFolderPath));
+                            await Task.Run(() => GENERATE_MD5(md5CalculaterPath, passParameters.newFolderPath));
                         }
 
                         PIN_MAINFORM();
                         ADD_SEVENZ_USAGE_COUNT();
                     }
 
-                    if (format == "tar")
+                    if (passParameters.format == "tar")
                     {
                         if (!CHECK_SEVENZ_EXIST())
                         {
@@ -3211,7 +3262,7 @@ namespace Auto7z_GUI
                             }
                         }
 
-                        string command = GENERATE_COMMAND(filePaths);
+                        string command = GENERATE_COMMAND(!packedOneFile ? filePaths : newFilePaths, passParameters);
 
                         if (command == null)
                         {
@@ -3224,28 +3275,28 @@ namespace Auto7z_GUI
                         if (!tarFinished)
                         {
                             PIN_MAINFORM();
-                            DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                            DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                         }
 
                         if (CheckBoxZstd.Checked)
                         {
-                            string zstdCommand = ZSTD_COMMAND();
+                            string zstdCommand = ZSTD_COMMAND(passParameters);
                             bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
 
                             if (!zstdFinished)
                             {
                                 PIN_MAINFORM();
-                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                             }
                             else
                             {
-                                DELETE_TEMP_TAR(newFolderPath);
+                                DELETE_TEMP_TAR(passParameters.newFolderPath, passParameters);
                             }
                         }
 
-                        if (createMd5 && Directory.Exists(newFolderPath))
+                        if (passParameters.createMd5 && Directory.Exists(passParameters.newFolderPath))
                         {
-                            await Task.Run(() => GENERATE_MD5(md5CalculaterPath, newFolderPath));
+                            await Task.Run(() => GENERATE_MD5(md5CalculaterPath, passParameters.newFolderPath));
                         }
 
                         PIN_MAINFORM();
@@ -3257,9 +3308,12 @@ namespace Auto7z_GUI
                 {
                     foreach (var singleFilePath in files)
                     {
-                        filePath = Path.GetFullPath(singleFilePath);
-                        fileName = Path.GetFileNameWithoutExtension(filePath);
-                        directoryPath = Path.GetDirectoryName(filePath);
+                        string filePath = Path.GetFullPath(singleFilePath);
+                        string fileName = Path.GetFileNameWithoutExtension(filePath);
+                        string directoryPath = Path.GetDirectoryName(filePath);
+                        passParameters.filePath = filePath;
+                        passParameters.fileName = fileName;
+                        passParameters.directoryPath = directoryPath;
 
                         bool isFileInUse = IS_FILE_IN_USE(new string[] { filePath }, out Exception ex);
 
@@ -3276,7 +3330,7 @@ namespace Auto7z_GUI
                             return;
                         }
 
-                        if (format == "7z" || format == "zip")
+                        if (passParameters.format == "7z" || passParameters.format == "zip")
                         {
                             if (!CHECK_SEVENZ_EXIST())
                             {
@@ -3287,24 +3341,24 @@ namespace Auto7z_GUI
                                 }
                             }
 
-                            string command = GENERATE_COMMAND(new string[] { filePath });
+                            string command = GENERATE_COMMAND(new string[] { filePath }, passParameters);
 
                             bool finished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
 
                             if (!finished)
                             {
-                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                             }
 
-                            if (createMd5 && Directory.Exists(newFolderPath))
+                            if (passParameters.createMd5 && Directory.Exists(passParameters.newFolderPath))
                             {
-                                await Task.Run(() => GENERATE_MD5(md5CalculaterPath, newFolderPath));
+                                await Task.Run(() => GENERATE_MD5(md5CalculaterPath, passParameters.newFolderPath));
                             }
 
                             ADD_SEVENZ_USAGE_COUNT();
                         }
 
-                        if (format == "tar")
+                        if (passParameters.format == "tar")
                         {
                             if (!CHECK_SEVENZ_EXIST())
                             {
@@ -3315,33 +3369,33 @@ namespace Auto7z_GUI
                                 }
                             }
 
-                            string command = GENERATE_COMMAND(new string[] { filePath });
+                            string command = GENERATE_COMMAND(new string[] { filePath }, passParameters);
 
                             bool tarFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(command));
 
                             if (!tarFinished)
                             {
-                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                             }
 
                             if (CheckBoxZstd.Checked)
                             {
-                                string zstdCommand = ZSTD_COMMAND();
+                                string zstdCommand = ZSTD_COMMAND(passParameters);
                                 bool zstdFinished = await Task.Run(() => EXECUTE_COMMAND_BOOL(zstdCommand));
 
                                 if (!zstdFinished)
                                 {
-                                    DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED();
+                                    DELETE_FILES_AND_FOLDER_WHILE_UNFINISHED(passParameters);
                                 }
                                 else
                                 {
-                                    DELETE_TEMP_TAR(newFolderPath);
+                                    DELETE_TEMP_TAR(passParameters.newFolderPath, passParameters);
                                 }
                             }
 
-                            if (createMd5 && Directory.Exists(newFolderPath))
+                            if (passParameters.createMd5 && Directory.Exists(passParameters.newFolderPath))
                             {
-                                await Task.Run(() => GENERATE_MD5(md5CalculaterPath, newFolderPath));
+                                await Task.Run(() => GENERATE_MD5(md5CalculaterPath, passParameters.newFolderPath));
                             }
 
                             ADD_SEVENZ_USAGE_COUNT();
@@ -3374,7 +3428,7 @@ namespace Auto7z_GUI
 
         private void MAINFORM_FORM_CLOSING(object sender, FormClosingEventArgs e)
         {
-            DELETE_EXTRACT_RESOURCE();
+            DELETE_EXTRACT_RESOURCE(passParameters);
 
             if (!CheckBoxAutoSave.Checked)
             {
@@ -3383,7 +3437,7 @@ namespace Auto7z_GUI
 
             else
             {
-                SAVE_CONFIG();
+                SAVE_CONFIG(passParameters);
             }
 
             SAVE_LOCATION();

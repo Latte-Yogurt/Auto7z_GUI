@@ -11,11 +11,8 @@ namespace Auto7z_GUI
     {
         private Dictionary<string, Dictionary<string, string>> languageTexts;
 
-        private string currentLanguage;
-        private float systemScale;
-        private int locationX;
-        private int locationY;
-
+        private readonly string currentLanguage;
+        private readonly float systemScale;
 
         public AboutForm()
         {
@@ -126,8 +123,8 @@ namespace Auto7z_GUI
 
         private void ABOUT_FORM_LOAD(object sender, EventArgs e)
         {
-            locationX = Screen.PrimaryScreen.Bounds.Width / 2 - this.Width / 2;
-            locationY = Screen.PrimaryScreen.Bounds.Height / 2 - this.Height / 2;
+            int locationX = Screen.PrimaryScreen.Bounds.Width / 2 - this.Width / 2;
+            int locationY = Screen.PrimaryScreen.Bounds.Height / 2 - this.Height / 2;
 
             this.Location = new Point(locationX, locationY);
 
